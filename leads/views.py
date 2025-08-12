@@ -1,5 +1,10 @@
 import logging
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+from django.contrib import messages
+from .models import Lead, Agent
 import datetime
+from urllib import request
 from django import contrib
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -10,6 +15,9 @@ from django.http import HttpResponse
 from django.views import generic
 from agents.mixins import OrganisorAndLoginRequiredMixin
 from .models import Lead, Agent, Category, FollowUp
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 from .forms import (
     LeadForm, 
     LeadModelForm, 
@@ -89,7 +97,6 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user = self.request.user
-        # initial queryset of leads for the entire organisation
         if user.is_organisor:
             queryset = Lead.objects.filter(
                 organisation=user.userprofile, 
@@ -99,22 +106,29 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
             queryset = Lead.objects.filter(
                 organisation=user.agent.organisation, 
                 agent__isnull=False
-            )
-            # filter for the agent that is logged in
-            queryset = queryset.filter(agent__user=user)
+            ).filter(agent__user=user)
         return queryset
 
     def get_context_data(self, **kwargs):
-        context = super(LeadListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         user = self.request.user
+
+        # unassigned leads
         if user.is_organisor:
-            queryset = Lead.objects.filter(
+            unassigned = Lead.objects.filter(
                 organisation=user.userprofile, 
                 agent__isnull=True
             )
-            context.update({
-                "unassigned_leads": queryset
-            })
+            context["unassigned_leads"] = unassigned
+
+            # add agents for the dropdown
+            context["agents"] = Agent.objects.filter(
+                organisation=user.userprofile
+            )
+        else:
+            context["agents"] = Agent.objects.filter(
+                organisation=user.agent.organisation
+            )
         return context
 
 
@@ -514,3 +528,50 @@ class LeadJsonView(generic.View):
         return JsonResponse({
             "qs": qs,
         })
+    
+
+class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
+    template_name = "leads/assign_multiple_agents.html"
+    context_object_name = "leads"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_organisor:
+            return Lead.objects.filter(organisation=user.userprofile, agent__isnull=True)
+        else:
+            return Lead.objects.filter(organisation=user.agent.organisation, agent=user.agent)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        if user.is_organisor:
+            agents = Agent.objects.filter(organisation=user.userprofile)
+        else:
+            agents = Agent.objects.filter(organisation=user.agent.organisation)
+        context['agents'] = agents
+        return context
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        lead_ids = request.POST.getlist('lead_ids')
+        agent_id = request.POST.get('agent_id')
+
+        if not lead_ids:
+            messages.error(request, "Zgjidh së paku një lead.")
+            return redirect('leads:lead-list')
+
+        if not agent_id:
+            messages.error(request, "Zgjidh një agent.")
+            return redirect('leads:lead-list')
+
+        try:
+            agent = Agent.objects.get(id=agent_id, organisation=user.userprofile)
+        except Agent.DoesNotExist:
+            messages.error(request, "Agjenti i zgjedhur nuk ekziston.")
+            return redirect('leads:lead-list')
+
+        leads = Lead.objects.filter(id__in=lead_ids, organisation=user.userprofile)
+        updated_count = leads.update(agent=agent)
+
+        messages.success(request, f"{updated_count} leads janë caktuar te agjenti {agent.user.get_full_name()}.")
+        return redirect('leads:lead-list')
