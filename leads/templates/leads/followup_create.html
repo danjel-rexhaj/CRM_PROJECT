@@ -6,7 +6,8 @@
 <div class="max-w-lg mx-auto">
     <a class="hover:text-blue-500" href="{% url 'leads:lead-detail' lead.pk %}">Go back to {{ lead }}</a>
     <div class="py-5 border-t border-gray-200">
-        <h1 class="text-4xl text-gray-800">Create a new followup</h1>
+        <h1 class="text-4xl text-gray-800">Create a new Note
+        </h1>
     </div>
     <form method="post" class="mt-5" enctype="multipart/form-data">
         {% csrf_token %}

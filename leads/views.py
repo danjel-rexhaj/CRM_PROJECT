@@ -158,20 +158,8 @@ class LeadDetailView(LoginRequiredMixin, generic.DetailView):
 
 def lead_detail(request, pk):
     lead = Lead.objects.get(id=pk)
-    categories = Category.objects.all()  # <-- merr të gjitha kategoritë
-
-    if request.method == "POST":
-        form = LeadCategoryUpdateForm(request.POST, instance=lead)
-        if form.is_valid():
-            form.save()
-            return redirect('leads:lead-detail', pk=lead.pk)
-    else:
-        form = LeadCategoryUpdateForm(instance=lead)
-
     context = {
-        "lead": lead,
-        "form": form,
-        "categories": categories,  # <-- shto tek context
+        "lead": lead
     }
     return render(request, "leads/lead_detail.html", context)
 
@@ -441,6 +429,7 @@ class FollowUpCreateView(LoginRequiredMixin, generic.CreateView):
         lead = Lead.objects.get(pk=self.kwargs["pk"])
         followup = form.save(commit=False)
         followup.lead = lead
+        followup.agent = self.request.user
         followup.save()
         return super(FollowUpCreateView, self).form_valid(form)
 

@@ -4,9 +4,9 @@
 {% block content %}
 
 <div class="max-w-lg mx-auto">
-    <a class="hover:text-blue-500" href="{% url 'leads:lead-detail' object.lead.pk %}">Go back to followup</a>
+    <a class="hover:text-blue-500" href="{% url 'leads:lead-detail' object.lead.pk %}">Go back to notes</a>
     <div class="py-5 border-t border-gray-200">
-        <h1 class="text-4xl text-gray-800">Update this followup</h1>
+        <h1 class="text-4xl text-gray-800">Update this note</h1>
     </div>
     <form method="post" class="mt-5">
         {% csrf_token %}

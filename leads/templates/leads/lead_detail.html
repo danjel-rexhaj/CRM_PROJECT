@@ -12,7 +12,7 @@
         Overview
       </a>
       <a href="{% url 'leads:lead-category-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 text-center">
-        Category
+        Status
       </a>
       <a href="{% url 'leads:lead-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 text-center">
         Update Details
@@ -22,60 +22,76 @@
     <div class="lg:w-4/5 mx-auto flex flex-wrap gap-6">
       
       <!-- Blloku i Informacionit -->
-      <div class="w-full lg:w-2/5 bg-white shadow rounded-lg p-6">
-        <div class="flex items-center space-x-4 mb-4">
-          {% if lead.profile_picture %}
-          <img class="w-16 h-16 rounded-full" src="{{ lead.profile_picture.url }}" alt="">
-          {% endif %}
-          <h2 class="text-2xl font-semibold">{{ lead.first_name }} {{ lead.last_name }}</h2>
-        </div>
-        <div class="space-y-2">
-          <div class="flex justify-between border-t border-gray-200 py-2">
-            <span class="text-gray-500">Age</span>
-            <span class="text-gray-900">{{ lead.age }}</span>
-          </div>
-          <div class="flex justify-between border-t border-gray-200 py-2">
-            <span class="text-gray-500">Email</span>
-            <span class="text-gray-900">{{ lead.email }}</span>
-          </div>
-          <div class="flex justify-between border-t border-gray-200 py-2">
-            <span class="text-gray-500">Status</span>
-            <span class="text-gray-900">{{ lead.category }}</span>
-          </div>
-          <div class="flex justify-between border-t border-b border-gray-200 py-2">
-            <span class="text-gray-500">Phone</span>
-            <span class="text-gray-900">{{ lead.phone_number }}</span>
-          </div>
-        </div>
-      </div>
+<div class="overview-block w-full lg:w-2/5">
+  <div class="overview-header">
+    {% if lead.profile_picture %}
+    <img src="{{ lead.profile_picture.url }}" alt="{{ lead.first_name }}" />
+    {% endif %}
+    <div class="overview-name">
+      <h2 class="text-2xl font-semibold">{{ lead.first_name }} {{ lead.last_name }}</h2>
+    </div>
+  </div>
 
-      <!-- Blloku i Notes/Followups -->
+  <div class="overview-rows">
+    <div class="overview-row">
+      <span class="overview-label">Email</span>
+      <span class="overview-value">{{ lead.email }}</span>
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">Age</span>
+      <span class="overview-value">{{ lead.age }}</span>
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">Status</span>
+      <span class="overview-value">{{ lead.category }}</span>
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">Phone Number</span>
+      <span class="overview-value">{{ lead.phone_number }}</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- Blloku i Notes/Followups -->
 <div class="w-full lg:w-3/5">
   <a href="{% url 'leads:lead-followup-create' lead.pk %}" class="inline-block text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-md mb-4">
-    Add a followup
+    Add a Note
   </a>
 
-  {% for followup in lead.followups.all reversed %}
-  <div class="bg-white shadow rounded-lg p-4 mb-4"> <!-- mb-4 shton hapësirë mes followups -->
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="font-medium text-gray-700">{{ followup.agent.usename }}</h3>
-      <a href="{% url 'leads:lead-followup-update' followup.pk %}" class="text-blue-500 hover:text-blue-700 text-sm">update</a>
-    </div>
-    <p class="text-gray-900 mb-2">{{ followup.notes }}</p>
-    {% if followup.file %}
-    <div>
-      <h4 class="text-gray-500 text-sm mb-1">Attachments</h4>
-      <ul class="border border-gray-200 rounded-md divide-y divide-gray-200">
-        <li class="pl-3 pr-4 py-2 flex items-center justify-between text-sm">
-          <span>{{ followup.file.name }}</span>
-          <a href="{{ followup.file.url }}" download class="text-indigo-600 hover:text-indigo-500">Download</a>
-        </li>
-      </ul>
-    </div>
-    {% endif %}
+  <div class="overflow-x-auto bg-white shadow rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">#</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Agent</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Note</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Date/Time</th>
+          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Update</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
+        <tr>
+          <td class="px-4 py-2 text-sm text-gray-700">{{ forloop.counter }}</td>
+          <td class="px-4 py-2 text-sm text-gray-700">{{ followup.agent.username }} </td>
+          <td class="px-4 py-2 text-sm text-gray-900">{{ followup.notes }}</td>
+          <td class="px-4 py-2 text-sm text-gray-500">{{ followup.date_added|date:"d M Y, H:i" }}</td>
+          <td class="px-4 py-2 text-sm">
+            <a href="{% url 'leads:lead-followup-update' followup.pk %}" class="text-blue-500 hover:text-blue-700">Update</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-4 py-2 text-gray-500 text-center">No notes added yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  {% endfor %}
 </div>
+
+
 
 
     </div>

@@ -1,58 +1,64 @@
-/* Blloku i informacionit */
 .overview-block {
-    background-color: #ffffff; /* ngjyra e sfondit */
-    border-radius: 12px;       /* cepa të rrumbullakët */
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.08); /* hije më e butë */
-    padding: 24px;             /* hapësira brenda */
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 16px;                 /* hapësira mes rreshtave */
+    gap: 24px;
 }
 
-/* Rresht individual brenda bllokut */
+.overview-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.overview-header img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3b82f6; /* mund të shtosh një bordurë të lehtë */
+}
+
+.overview-name h2 {
+    font-size: 1.75rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.overview-email {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.overview-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .overview-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;           /* hapësira mes elementeve */
-    border-top: 1px solid #e5e7eb; /* linja ndarëse e lehtë */
+    padding: 8px 0;
+    border-top: 1px solid #e5e7eb;
 }
 
 .overview-row:first-child {
-    border-top: none;          /* hiq linjën e parë */
+    border-top: none;
 }
 
-/* Titulli dhe imazhi */
-.overview-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;                 /* hapësira mes imazhit dhe emrit */
-    margin-bottom: 16px;
-}
-
-.overview-header img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-/* Tekstet e labels dhe vlerave */
 .overview-label {
-    color: #6b7280; /* gray-500 */
-    font-size: 15px; /* rreth 0.95rem -> 15px */
+    color: #6b7280;
+    font-size: 15px;
 }
 
 .overview-value {
-    color: #111827; /* gray-900 */
+    color: #111827;
     font-weight: 500;
-}
-
-/* Për responsive: kolona dhe spacing */
-@media (min-width: 1024px) {
-    .overview-block {
-        width: 100%;
-    }
 }
 
 .followup-block {

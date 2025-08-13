@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser
-from django.conf import settings
 
 
 class User(AbstractUser):
@@ -43,16 +42,16 @@ class Lead(models.Model):
 def handle_upload_follow_ups(instance, filename):
     return f"lead_followups/lead_{instance.lead.pk}/{filename}"
 
-
 class FollowUp(models.Model):
     lead = models.ForeignKey(Lead, related_name="followups", on_delete=models.CASCADE)
-    agent = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)  # <--- kjo rreshti i ri
+    agent = models.ForeignKey(User, on_delete=models.CASCADE)  # sigurohemi që nuk është null
     date_added = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
     file = models.FileField(null=True, blank=True, upload_to=handle_upload_follow_ups)
 
     def __str__(self):
-        return f"{self.lead.first_name} {self.lead.last_name} - {self.agent.username if self.agent else 'Unknown'}"
+        return f"{self.lead.first_name} {self.lead.last_name} - {self.agent.get_full_name()}"
+
 
 class Agent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

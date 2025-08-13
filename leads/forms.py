@@ -16,8 +16,7 @@ class LeadModelForm(forms.ModelForm):
             'age',
             'agent',
             'phone_number',
-            'email',
-            'profile_picture'
+            'email'
         )
 
     def clean_first_name(self):
@@ -79,7 +78,11 @@ class FollowUpModelForm(forms.ModelForm):
         model = FollowUp
         fields = (
             'notes',
-            'file'
         )
-
-        
+        widgets = {
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter your notes here...',
+                'rows': 4
+            })
+        }
