@@ -158,8 +158,20 @@ class LeadDetailView(LoginRequiredMixin, generic.DetailView):
 
 def lead_detail(request, pk):
     lead = Lead.objects.get(id=pk)
+    categories = Category.objects.all()  # <-- merr të gjitha kategoritë
+
+    if request.method == "POST":
+        form = LeadCategoryUpdateForm(request.POST, instance=lead)
+        if form.is_valid():
+            form.save()
+            return redirect('leads:lead-detail', pk=lead.pk)
+    else:
+        form = LeadCategoryUpdateForm(instance=lead)
+
     context = {
-        "lead": lead
+        "lead": lead,
+        "form": form,
+        "categories": categories,  # <-- shto tek context
     }
     return render(request, "leads/lead_detail.html", context)
 
@@ -575,3 +587,6 @@ class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
 
         messages.success(request, f"{updated_count} leads janë caktuar te agjenti {agent.user.get_full_name()}.")
         return redirect('leads:lead-list')
+    
+
+    

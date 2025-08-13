@@ -1,0 +1,80 @@
+/* Blloku i informacionit */
+.overview-block {
+    background-color: #ffffff; /* ngjyra e sfondit */
+    border-radius: 12px;       /* cepa të rrumbullakët */
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08); /* hije më e butë */
+    padding: 24px;             /* hapësira brenda */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;                 /* hapësira mes rreshtave */
+}
+
+/* Rresht individual brenda bllokut */
+.overview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;           /* hapësira mes elementeve */
+    border-top: 1px solid #e5e7eb; /* linja ndarëse e lehtë */
+}
+
+.overview-row:first-child {
+    border-top: none;          /* hiq linjën e parë */
+}
+
+/* Titulli dhe imazhi */
+.overview-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;                 /* hapësira mes imazhit dhe emrit */
+    margin-bottom: 16px;
+}
+
+.overview-header img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Tekstet e labels dhe vlerave */
+.overview-label {
+    color: #6b7280; /* gray-500 */
+    font-size: 15px; /* rreth 0.95rem -> 15px */
+}
+
+.overview-value {
+    color: #111827; /* gray-900 */
+    font-weight: 500;
+}
+
+/* Për responsive: kolona dhe spacing */
+@media (min-width: 1024px) {
+    .overview-block {
+        width: 100%;
+    }
+}
+
+.followup-block {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+    padding: 16px;
+    margin-bottom: 16px; /* hapësira mes secilës note */
+}
+
+.followup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.followup-notes {
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.followup-attachments ul li {
+    padding: 8px 12px; /* rregullim i brendshëm i attachment */
+}

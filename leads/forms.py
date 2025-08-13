@@ -15,7 +15,6 @@ class LeadModelForm(forms.ModelForm):
             'last_name',
             'age',
             'agent',
-            'description',
             'phone_number',
             'email',
             'profile_picture'
@@ -82,3 +81,5 @@ class FollowUpModelForm(forms.ModelForm):
             'notes',
             'file'
         )
+
+        

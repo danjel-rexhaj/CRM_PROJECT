@@ -20,11 +20,13 @@
                     Update Details
                 </a>
             </div>
-            <form form method="post">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <button type="submit" class="w-full text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-md">Submit</button>
-            </form>
+             <form method="post">
+          {% csrf_token %}
+          {{ form|crispy }}
+          <button type="submit" class="w-full text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-md mt-3">
+            Save
+          </button>
+        </form>
         </div>
       </div>
     </div>

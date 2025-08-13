@@ -28,7 +28,7 @@ class AgentCreateView(OrganisorAndLoginRequiredMixin, generic.CreateView):
         user = form.save(commit=False)
         user.is_agent = True
         user.is_organisor = False
-        user.set_password(f"{random.randint(0, 10)}")
+        user.set_password(form.cleaned_data["password"])  # vendos password nga forma
         user.save()
         Agent.objects.create(
             user=user,
@@ -40,7 +40,8 @@ class AgentCreateView(OrganisorAndLoginRequiredMixin, generic.CreateView):
             from_email="admin@test.com",
             recipient_list=[user.email]
         )
-        return super(AgentCreateView, self).form_valid(form)
+        return super().form_valid(form)
+
 
 
 class AgentDetailView(OrganisorAndLoginRequiredMixin, generic.DetailView):
