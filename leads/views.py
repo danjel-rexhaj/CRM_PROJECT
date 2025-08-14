@@ -17,6 +17,11 @@ from agents.mixins import OrganisorAndLoginRequiredMixin
 from .models import Lead, Agent, Category, FollowUp
 from django.contrib import messages
 from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
+from django.shortcuts import redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import generic
+from .models import FollowUp
 from django.contrib.auth.decorators import login_required
 from .forms import (
     LeadForm, 
@@ -453,23 +458,27 @@ class FollowUpUpdateView(LoginRequiredMixin, generic.UpdateView):
         return reverse("leads:lead-detail", kwargs={"pk": self.get_object().lead.id})
 
 
-class FollowUpDeleteView(OrganisorAndLoginRequiredMixin, generic.DeleteView):
+class FollowUpDeleteView(LoginRequiredMixin, generic.DeleteView):
     template_name = "leads/followup_delete.html"
-
-    def get_success_url(self):
-        followup = FollowUp.objects.get(id=self.kwargs["pk"])
-        return reverse("leads:lead-detail", kwargs={"pk": followup.lead.pk})
 
     def get_queryset(self):
         user = self.request.user
-        # initial queryset of leads for the entire organisation
-        if user.is_organisor:
-            queryset = FollowUp.objects.filter(lead__organisation=user.userprofile)
+        if user.is_organisor or user.is_superuser:
+            return FollowUp.objects.all()
         else:
-            queryset = FollowUp.objects.filter(lead__organisation=user.agent.organisation)
-            # filter for the agent that is logged in
-            queryset = queryset.filter(lead__agent__user=user)
-        return queryset
+            return FollowUp.objects.filter(agent=user)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        lead_pk = self.object.lead.pk
+
+        if not request.user.is_organisor and not request.user.is_superuser:
+            if self.object.agent != request.user:
+                return HttpResponseForbidden("You cannot delete this comment.")
+
+        # Fshin objektin dhe redirect
+        self.object.delete()
+        return redirect("leads:lead-detail", pk=lead_pk)
 
 
 

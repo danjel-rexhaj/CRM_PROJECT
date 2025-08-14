@@ -3,98 +3,123 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'lead_detail.css' %}">
-<section class="text-gray-700 body-font overflow-hidden">
+
+<section class="body-font overflow-hidden">
   <div class="container px-5 py-24 mx-auto">
-    
-    <!-- Tabs mbi te gjitha -->
+
+    <!-- Tabs -->
     <div class="mb-6 flex border-b border-gray-300">
-      <a href="{% url 'leads:lead-detail' lead.pk %}" class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg px-1 text-center">
+      <a href="{% url 'leads:lead-detail' lead.pk %}" class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg text-center">
         Overview
       </a>
-      <a href="{% url 'leads:lead-category-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 text-center">
+      <a href="{% url 'leads:lead-category-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
         Status
       </a>
-      <a href="{% url 'leads:lead-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 text-center">
+      <a href="{% url 'leads:lead-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
         Update Details
       </a>
     </div>
 
-    <div class="lg:w-4/5 mx-auto flex flex-wrap gap-6">
-      
+    <div class="flex flex-wrap gap-6">
+
       <!-- Blloku i Informacionit -->
-<div class="overview-block w-full lg:w-2/5">
-  <div class="overview-header">
-    {% if lead.profile_picture %}
-    <img src="{{ lead.profile_picture.url }}" alt="{{ lead.first_name }}" />
+      <div class="overview-block w-full lg:w-2/5">
+        <div class="overview-header">
+          {% if lead.profile_picture %}
+          <img src="{{ lead.profile_picture.url }}" alt="{{ lead.first_name }}">
+          {% endif %}
+          <div class="overview-name">
+            <h2 class="text-2xl font-semibold ">{{ lead.first_name }} {{ lead.last_name }}</h2>
+          </div>
+        </div>
+
+        <div class="overview-rows">
+          <div class="overview-row">
+            <span class="overview-label">Email</span>
+            <span class="overview-value">{{ lead.email }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="overview-label">Age</span>
+            <span class="overview-value">{{ lead.age }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="overview-label">Status</span>
+            <span class="overview-value">{{ lead.category }}</span>
+          </div>
+          <div class="overview-row">
+            <span class="overview-label">Phone Number</span>
+            <span class="overview-value">{{ lead.phone_number }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blloku i Notes -->
+      <div class="w-full lg:w-3/5">
+        <form method="POST" action="{% url 'leads:lead-followup-create' lead.pk %}" class="mb-4">
+          {% csrf_token %}
+          <textarea id="noteInput" name="notes" rows="2" placeholder="Shkruaj nje koment..."></textarea>
+          <button id="addNoteBtn" type="submit" disabled>
+            Add Note
+          </button>
+        </form>
+
+        <div class="space-y-3">
+         {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
+        <div class="followup-block" data-is-admin="{{ request.user.is_superuser|yesno:'true,false' }}">
+
+    <div class="followup-header">
+        <span class="agent-name">{{ followup.agent.username }}</span>
+        <span class="date-added" data-timestamp="{{ followup.date_added.timestamp }}">{{ followup.date_added|date:"d M Y, H:i" }}</span>
+    </div>
+    <p class="followup-notes">{{ followup.notes }}</p>
+
+    {% if request.user.is_superuser or followup.agent == request.user %}
+    <!-- butoni i update -->
+    <div class="update-btn-container">
+        <a href="{% url 'leads:lead-followup-update' followup.pk %}" class="edit-button update-button">Update</a>
+    </div>
     {% endif %}
-    <div class="overview-name">
-      <h2 class="text-2xl font-semibold">{{ lead.first_name }} {{ lead.last_name }}</h2>
-    </div>
-  </div>
-
-  <div class="overview-rows">
-    <div class="overview-row">
-      <span class="overview-label">Email</span>
-      <span class="overview-value">{{ lead.email }}</span>
-    </div>
-    <div class="overview-row">
-      <span class="overview-label">Age</span>
-      <span class="overview-value">{{ lead.age }}</span>
-    </div>
-    <div class="overview-row">
-      <span class="overview-label">Status</span>
-      <span class="overview-value">{{ lead.category }}</span>
-    </div>
-    <div class="overview-row">
-      <span class="overview-label">Phone Number</span>
-      <span class="overview-value">{{ lead.phone_number }}</span>
-    </div>
-  </div>
 </div>
-
-
-<!-- Blloku i Notes/Followups -->
-<div class="w-full lg:w-3/5">
-  <a href="{% url 'leads:lead-followup-create' lead.pk %}" class="inline-block text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-md mb-4">
-    Add a Note
-  </a>
-
-  <div class="overflow-x-auto bg-white shadow rounded-lg">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">#</th>
-          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Agent</th>
-          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Note</th>
-          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Date/Time</th>
-          <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Update</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
-        <tr>
-          <td class="px-4 py-2 text-sm text-gray-700">{{ forloop.counter }}</td>
-          <td class="px-4 py-2 text-sm text-gray-700">{{ followup.agent.username }} </td>
-          <td class="px-4 py-2 text-sm text-gray-900">{{ followup.notes }}</td>
-          <td class="px-4 py-2 text-sm text-gray-500">{{ followup.date_added|date:"d M Y, H:i" }}</td>
-          <td class="px-4 py-2 text-sm">
-            <a href="{% url 'leads:lead-followup-update' followup.pk %}" class="text-blue-500 hover:text-blue-700">Update</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="px-4 py-2 text-gray-500 text-center">No notes added yet.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-
-
+{% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 </section>
+
+<script>
+  const noteInput = document.getElementById('noteInput');
+  const addNoteBtn = document.getElementById('addNoteBtn');
+
+  noteInput.addEventListener('input', () => {
+    if (noteInput.value.trim() !== '') {
+      addNoteBtn.disabled = false;
+      addNoteBtn.classList.add('enabled');
+    } else {
+      addNoteBtn.disabled = true;
+      addNoteBtn.classList.remove('enabled');
+    }
+  });
+
+ document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.update-button');
+
+    buttons.forEach(button => {
+        const block = button.closest('.followup-block');
+        const timestampElem = block.querySelector('.date-added');
+        const commentTime = parseFloat(timestampElem.getAttribute('data-timestamp')) * 1000;
+        const now = Date.now();
+
+        const diffMinutes = (now - commentTime) / (1000 * 60);
+
+        // Kontrollo nëse përdoruesi nuk është admin
+        const isAdmin = block.dataset.isAdmin === "true";
+
+        if (!isAdmin && diffMinutes > 5) {
+            button.style.display = 'none';
+        }
+    });
+});
+
+</script>
 {% endblock content %}
