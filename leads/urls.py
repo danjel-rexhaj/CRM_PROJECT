@@ -4,7 +4,7 @@ from .views import (
     LeadListView, LeadDetailView, LeadCreateView, LeadUpdateView, LeadDeleteView,
     AssignAgentView, CategoryListView, CategoryDetailView, LeadCategoryUpdateView,
     CategoryCreateView, CategoryUpdateView, CategoryDeleteView, LeadJsonView, 
-    FollowUpCreateView, FollowUpUpdateView, FollowUpDeleteView,  AssignMultipleAgentsView
+    FollowUpCreateView, FollowUpUpdateView, FollowUpDeleteView,  AssignMultipleAgentsView, PublicLeadCreateView
 )
 
 
@@ -28,6 +28,6 @@ urlpatterns = [
     path('categories/<int:pk>/delete/', CategoryDeleteView.as_view(), name='category-delete'),
     path('create-category/', CategoryCreateView.as_view(), name='category-create'),
     path('assign-multiple-agents/', AssignMultipleAgentsView.as_view(), name='assign-multiple-agents'),
-
+    path('register-lead/', PublicLeadCreateView.as_view(), name='thank-you'),
 
 ]

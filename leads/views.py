@@ -4,12 +4,12 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from .models import Lead, Agent
 import datetime
-from urllib import request
-from django import contrib
-from django.contrib import messages
+from .models import Lead, Agent, Category
+from django.urls import reverse
+from django.views import View
 from django.core.mail import send_mail
 from django.http.response import JsonResponse
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.views import generic
@@ -22,6 +22,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import generic
 from .models import FollowUp
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from .forms import (
     LeadForm, 
@@ -593,3 +594,52 @@ class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
     
 
     
+User = get_user_model()
+
+class PublicLeadCreateView(generic.ListView):
+    template_name = "leads/public_lead_form.html"
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+
+    def post(self, request, *args, **kwargs):
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+        phone_number = request.POST.get("phone_number")
+        service = request.POST.get("service")
+
+        if not (first_name and last_name and email):
+            messages.error(request, "Plotëso të gjitha fushat e kërkuara.")
+            return render(request, self.template_name)
+
+        # Marrim user admin
+        admin_user = User.objects.get(username="admin")
+        organisation = admin_user.userprofile
+
+        # Marrim agentin që lidhet me admin_user
+        try:
+            agent = Agent.objects.get(user=admin_user)
+        except Agent.DoesNotExist:
+            # Nëse nuk ekziston, e krijojmë
+            agent = Agent.objects.create(user=admin_user, organisation=organisation)
+
+        try:
+            new_category = Category.objects.get(name="New", organisation=organisation)
+        except Category.DoesNotExist:
+            new_category = Category.objects.create(name="New", organisation=organisation)
+
+
+        # Krijojmë lead
+        Lead.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone_number=phone_number,
+            organisation=organisation,
+            agent=agent,
+            category=new_category
+        )
+
+        messages.success(request, "Faleminderit! Lead juaj u regjistrua me sukses.")
+        return redirect("leads:thank-you")
