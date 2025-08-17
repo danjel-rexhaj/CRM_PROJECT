@@ -1,40 +1,75 @@
 {% load static %}
 
 <header class="text-gray-700 body-font">
-    <div class=" lg:w-16 container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
-      <a href="{% url 'dashboard' %}" class="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
-        <img  src="{% static 'images/gjergj_white.png' %}" alt="Logo" class="w-10 h-10 mr-2">
-        <span class="ml-3 text-xl">ALBOS CRM</span>
-      </a>
-      <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
-        {% if not request.user.is_authenticated %}
-          <a href="{% url 'signup' %}" class="mr-5 hover:text-gray-900">Signup</a>
-        {% else %}
-          {% if request.user.is_organisor %}
-            <a href="{% url 'agents:agent-list' %}" class="mr-5 hover:text-gray-900">Agents</a>
-          {% endif %}
-          <a href="{% url 'leads:lead-list' %}" class="mr-5 hover:text-gray-900">Leads</a>
+  <link rel="stylesheet" href="{% static 'lead_detail.css' %}">
+  <div class="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
+    <a href="{% url 'dashboard' %}" class="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
+      <img src="{% static 'images/gjergj_white.png' %}" alt="Logo" class="w-10 h-10 mr-2">
+      <span class="ml-3 text-xl">ALBOS CRM</span>
+    </a>
+
+    <nav class="md:ml-auto flex flex-wrap items-center text-base justify-center">
+      {% if not request.user.is_authenticated %}
+        <a href="{% url 'signup' %}" class="mr-5 hover:text-gray-900">Signup</a>
+      {% else %}
+        {% if request.user.is_organisor %}
+          <a href="{% url 'agents:agent-list' %}" class="mr-5 hover:text-gray-900">Agents</a>
         {% endif %}
-      </nav>
+        <a href="{% url 'leads:lead-list' %}" class="mr-5 hover:text-gray-900">Leads</a>
+      {% endif %}
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <!-- Dark Mode Toggle -->
+      <button id="darkModeToggle" class="p-2 rounded-full border border-gray-400 hover:bg-gray-200 transition">
+        🌙
+      </button>
 
       {% if request.user.is_authenticated %}
-        Logged in as: {{ request.user.username }}
+        <span class="text-sm">Logged in as: {{ request.user.username }}</span>
         <form method="post" action="{% url 'logout' %}" class="inline ml-3">
           {% csrf_token %}
-          <button type="submit" class="inline-flex items-center bg-gray-200 border-0 py-1 px-3 focus:outline-none hover:bg-gray-300 rounded text-base mt-4 md:mt-0">
+          <button type="submit" class="inline-flex items-center bg-gray-200 border-0 py-1 px-3 
+          focus:outline-none hover:bg-gray-300 rounded text-base mt-4 md:mt-0">
             Logout
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-1" viewBox="0 0 24 24">
+            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
+            stroke-width="2" class="w-4 h-4 ml-1" viewBox="0 0 24 24">
               <path d="M5 12h14M12 5l7 7-7 7"></path>
             </svg>
           </button>
         </form>
       {% else %}
-        <a href="{% url 'login' %}" class="inline-flex items-center bg-gray-200 border-0 py-1 px-3 focus:outline-none hover:bg-gray-300 rounded text-base mt-4 md:mt-0">
+        <a href="{% url 'login' %}" class="inline-flex items-center bg-gray-200 border-0 py-1 px-3 
+        focus:outline-none hover:bg-gray-300 rounded text-base mt-4 md:mt-0">
           Login
-          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="w-4 h-4 ml-1" viewBox="0 0 24 24">
+          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
+          stroke-width="2" class="w-4 h-4 ml-1" viewBox="0 0 24 24">
             <path d="M5 12h14M12 5l7 7-7 7"></path>
           </svg>
         </a>
       {% endif %}
-      </div>
-    </header>
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggleBtn = document.getElementById("darkModeToggle");
+  const body = document.body;
+
+  // kontrollon ruajtjen në localStorage
+  if (localStorage.getItem("theme") === "dark") {
+    body.classList.add("dark");
+    toggleBtn.textContent = "☀️";
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    body.classList.toggle("dark");
+    if (body.classList.contains("dark")) {
+      localStorage.setItem("theme", "dark");
+      toggleBtn.textContent = "☀️";
+    } else {
+      localStorage.setItem("theme", "light");
+      toggleBtn.textContent = "🌙";
+    }
+  });
+</script>

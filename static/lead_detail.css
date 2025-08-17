@@ -123,6 +123,15 @@
     cursor: not-allowed;
     transition: background-color 0.2s ease;
 }
+.saveButton{
+    margin-top: 12px; /* 0.75rem ≈ 12px */
+    padding: 8px 16px; /* 0.5rem 1rem ≈ 8px 16px */
+    border-radius: 8px; /* 0.5rem ≈ 8px */
+    background-color: #0c56c4;
+    color: white;
+    cursor: allowed;
+  
+}
 
 #addNoteBtn.enabled {
     background-color: #3b82f6;
@@ -151,3 +160,89 @@
     display: flex;
     justify-content: flex-end; /* shtyn butonin maksimalisht djathtas */ 
 }
+
+
+
+
+/* LIGHT MODE (default)   */
+/*
+body {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  transition: background 0.3s, color 0.3s;
+}
+
+header {
+  background: #f9fafb;
+  color: #1a1a1a;
+}
+
+a {
+  color: #2563eb; 
+}
+
+
+button,
+.bg-gray-200 {
+  background-color: #e5e7eb;
+  color: #1a1a1a;
+}
+
+button:hover,
+.hover\:bg-gray-300:hover {
+  background-color: #d1d5db;
+}
+
+
+table {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #d1d5db;
+  padding: 8px 12px;
+}
+
+/* ---------------------- */
+/* DARK MODE              */
+/* ---------------------- */
+/*
+body.dark {
+  background-color: #18181b; 
+  color: #e4e4e7;
+}
+
+body.dark header {
+  background: #27272a;
+  color: #f4f4f5;
+}
+
+body.dark a {
+  color: #60a5fa; 
+}
+
+body.dark button,
+body.dark .bg-gray-200 {
+  background-color: #3f3f46 !important;
+  color: #f4f4f5 !important;
+}
+
+body.dark button:hover,
+body.dark .hover\:bg-gray-300:hover {
+  background-color: #52525b !important;
+}
+
+
+body.dark table {
+  background-color: #2e2e33;
+  color: #f4f4f5;
+}
+
+body.dark table th,
+body.dark table td {
+  border: 1px solid #3f3f46;
+}
+*/

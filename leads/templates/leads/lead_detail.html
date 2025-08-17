@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-
+{% load tailwind_filters %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'lead_detail.css' %}">
 
@@ -9,88 +9,126 @@
 
     <!-- Tabs -->
     <div class="mb-6 flex border-b border-gray-300">
-      <a href="{% url 'leads:lead-detail' lead.pk %}" class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg text-center">
+      <a href="{% url 'leads:lead-detail' lead.pk %}"
+         class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg text-center">
         Overview
       </a>
-      <a href="{% url 'leads:lead-category-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
+      <a href="{% url 'leads:lead-category-update' lead.pk %}"
+         class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
         Status
       </a>
-      <a href="{% url 'leads:lead-update' lead.pk %}" class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
+      <a href="{% url 'leads:lead-update' lead.pk %}"
+         class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
         Update Details
       </a>
     </div>
 
     <div class="flex flex-wrap gap-6">
 
-      <!-- Blloku i Informacionit -->
+      <!-- Kolona e majtë - Overview -->
       <div class="overview-block w-full lg:w-2/5">
+        
+        <!-- Header -->
         <div class="overview-header">
           {% if lead.profile_picture %}
-          <img src="{{ lead.profile_picture.url }}" alt="{{ lead.first_name }}">
+            <img src="{{ lead.profile_picture.url }}" alt="{{ lead.first_name }}">
           {% endif %}
           <div class="overview-name">
-            <h2 class="text-2xl font-semibold ">{{ lead.first_name }} {{ lead.last_name }}</h2>
+            <h2 class="text-2xl font-semibold">
+              {{ lead.first_name }} {{ lead.last_name }}
+            </h2>
           </div>
         </div>
 
-        <div class="overview-rows">
-          <div class="overview-row">
-            <span class="overview-label">Email</span>
-            <span class="overview-value">{{ lead.email }}</span>
+        <!-- Form status + info -->
+        <form method="post"
+              action="{% url 'leads:lead-category-update' lead.pk %}"
+              id="statusForm">
+          {% csrf_token %}
+          
+          <div class="overview-rows">
+            <div class="overview-row">
+              <span class="overview-label">Email</span>
+              <span class="overview-value">{{ lead.email }}</span>
+            </div>
+
+            <div class="overview-row">
+              <span class="overview-label">Age</span>
+              <span class="overview-value">{{ lead.age }}</span>
+            </div>
+
+            <div class="overview-row">
+              <span class="overview-label">Status</span>
+              {{ form.category }}
+            </div>
+
+            <div class="overview-row">
+              <span class="overview-label">Phone Number</span>
+              <span class="overview-value">{{ lead.phone_number }}</span>
+            </div>
           </div>
-          <div class="overview-row">
-            <span class="overview-label">Age</span>
-            <span class="overview-value">{{ lead.age }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="overview-label">Status</span>
-            <span class="overview-value">{{ lead.category }}</span>
-          </div>
-          <div class="overview-row">
-            <span class="overview-label">Phone Number</span>
-            <span class="overview-value">{{ lead.phone_number }}</span>
-          </div>
-        </div>
+
+          <!-- Butoni Save -->
+          <button type="submit" id="saveButton" class="saveButton">
+            Save
+          </button>
+        </form>
       </div>
 
-      <!-- Blloku i Notes -->
+      <!-- Kolona e djathtë - Notes -->
       <div class="w-full lg:w-3/5">
-        <form method="POST" action="{% url 'leads:lead-followup-create' lead.pk %}" class="mb-4">
+
+        <!-- Form për shtim note -->
+        <form method="POST"
+              action="{% url 'leads:lead-followup-create' lead.pk %}"
+              class="mb-4">
           {% csrf_token %}
-          <textarea id="noteInput" name="notes" rows="2" placeholder="Shkruaj nje koment..."></textarea>
+          <textarea id="noteInput"
+                    name="notes"
+                    rows="2"
+                    placeholder="Shkruaj nje koment..."></textarea>
           <button id="addNoteBtn" type="submit" disabled>
             Add Note
           </button>
         </form>
 
+        <!-- Lista e followups -->
         <div class="space-y-3">
-         {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
-        <div class="followup-block" data-is-admin="{{ request.user.is_superuser|yesno:'true,false' }}">
+          {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
+            <div class="followup-block"
+                 data-is-admin="{{ request.user.is_superuser|yesno:'true,false' }}">
 
-    <div class="followup-header">
-        <span class="agent-name">{{ followup.agent.username }}</span>
-        <span class="date-added" data-timestamp="{{ followup.date_added.timestamp }}">{{ followup.date_added|date:"d M Y, H:i" }}</span>
-    </div>
-    <p class="followup-notes">{{ followup.notes }}</p>
+              <div class="followup-header">
+                <span class="agent-name">{{ followup.agent.username }}</span>
+                <span class="date-added"
+                      data-timestamp="{{ followup.date_added|date:'U' }}">
+                  {{ followup.date_added|date:"d M Y, H:i" }}
+                </span>
+              </div>
 
-    {% if request.user.is_superuser or followup.agent == request.user %}
-    <!-- butoni i update -->
-    <div class="update-btn-container">
-        <a href="{% url 'leads:lead-followup-update' followup.pk %}" class="edit-button update-button">Update</a>
-    </div>
-    {% endif %}
-</div>
-{% endfor %}
+              <p class="followup-notes">{{ followup.notes }}</p>
+
+              {% if request.user.is_superuser or followup.agent == request.user %}
+                <div class="update-btn-container">
+                  <a href="{% url 'leads:lead-followup-update' followup.pk %}"
+                     class="edit-button update-button">
+                    Update
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
         </div>
+
       </div>
     </div>
   </div>
 </section>
 
 <script>
+  // Aktivizim i butonit Add Note kur shkruhet text
   const noteInput = document.getElementById('noteInput');
   const addNoteBtn = document.getElementById('addNoteBtn');
-
   noteInput.addEventListener('input', () => {
     if (noteInput.value.trim() !== '') {
       addNoteBtn.disabled = false;
@@ -101,25 +139,20 @@
     }
   });
 
- document.addEventListener('DOMContentLoaded', function() {
+  // Fshi butonin e update pas 5 minutash (per user jo admin)
+  document.addEventListener('DOMContentLoaded', function() {
     const buttons = document.querySelectorAll('.update-button');
-
     buttons.forEach(button => {
-        const block = button.closest('.followup-block');
-        const timestampElem = block.querySelector('.date-added');
-        const commentTime = parseFloat(timestampElem.getAttribute('data-timestamp')) * 1000;
-        const now = Date.now();
-
-        const diffMinutes = (now - commentTime) / (1000 * 60);
-
-        // Kontrollo nëse përdoruesi nuk është admin
-        const isAdmin = block.dataset.isAdmin === "true";
-
-        if (!isAdmin && diffMinutes > 5) {
-            button.style.display = 'none';
-        }
+      const block = button.closest('.followup-block');
+      const timestampElem = block.querySelector('.date-added');
+      const commentTime = parseFloat(timestampElem.getAttribute('data-timestamp')) * 1000;
+      const now = Date.now();
+      const diffMinutes = (now - commentTime) / (1000 * 60);
+      const isAdmin = block.dataset.isAdmin === "true";
+      if (!isAdmin && diffMinutes > 5) {
+        button.style.display = 'none';
+      }
     });
-});
-
+  });
 </script>
 {% endblock content %}

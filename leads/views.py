@@ -151,14 +151,19 @@ class LeadDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_queryset(self):
         user = self.request.user
-        # initial queryset of leads for the entire organisation
         if user.is_organisor:
             queryset = Lead.objects.filter(organisation=user.userprofile)
         else:
             queryset = Lead.objects.filter(organisation=user.agent.organisation)
-            # filter for the agent that is logged in
             queryset = queryset.filter(agent__user=user)
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lead = self.get_object()
+        context["form"] = LeadCategoryUpdateForm(instance=lead)  # ← ky është select box
+        return context
+
 
 
 def lead_detail(request, pk):
