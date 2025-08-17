@@ -164,6 +164,116 @@
 
 
 
+
+
+
+/* Container i navbar-it */
+header .container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Çdo item brenda navbar */
+.navbar-item {
+    margin-left: 15px;    /* Hapsira mes elementëve */
+}
+
+/* Dark Mode Toggle */
+#darkModeToggle {
+    padding: 8px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* Bell i notifikimeve */
+#notificationBell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* Numri i unread */
+#notificationCount {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #e3342f;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Dropdown i notifikimeve */
+#notificationDropdown {
+    position: absolute;
+    top: 40px;       /* vendos poshtë bell-it */
+    right: 0;
+    width: 250px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    padding: 0;
+    display: none;   /* shfaqet me JS */
+    z-index: 50;
+}
+
+/* Çdo notifikim brenda dropdown */
+#notificationDropdown a {
+    display: block;
+    padding: 10px 15px;
+    font-size: 14px;
+    color: #333;
+    text-decoration: none;
+}
+
+#notificationDropdown a:hover {
+    background-color: #f0f0f0;
+}
+
+#notificationDropdown {
+    display: none; /* fshehur fillimisht */
+    position: absolute;
+    top: 40px;
+    right: 0;
+    width: 250px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 50;
+}
+
+#notificationDropdown a {
+    display: block;
+    padding: 10px 15px;
+    font-size: 14px;
+    color: #333;
+    text-decoration: none;
+}
+
+#notificationDropdown a:hover {
+    background-color: #f0f0f0;
+}
+
+
 /* LIGHT MODE (default)   */
 /*
 body {

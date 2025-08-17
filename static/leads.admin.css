@@ -42,3 +42,168 @@
 .select-all-label span {
   margin-left: 0.5rem; /* 8px hapësirë nga kuadrati */
 }
+
+
+
+
+.leads_text {
+  font-size: 60px;
+  font-weight: bold;
+  color: #4a5568; /* gray-800 */
+}
+
+
+.forms-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: nowrap; /* mos bien poshtë */
+}
+
+/* FORM FILTRIM */
+.filter-form {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-right: 100px;
+    background: #f9fafb;           /* njësoj si assign */
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+/* FORM ASSIGN AGENT */
+.assign-form {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f9fafb;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+
+    margin-bottom: 20px;
+}
+
+/* Search input me ikonë 🔍 dhe reset ✖ */
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper input[type="text"] {
+    height: 38px;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background-color: white;
+}
+
+.search-input-wrapper input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59,130,246,0.3);
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    font-size: 14px;
+    color: #888;
+}
+
+.reset-btn {
+    position: absolute;
+    right: 6px;
+    font-size: 14px;
+    color: #ef4444;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-btn:hover {
+    color: #b91c1c;
+}
+
+/* Input dhe select fields – të njëjtën madhësi */
+.forms-row select {
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    min-width: 180px;
+    background-color: white;
+}
+
+/* Buton filtrimi */
+.filter-btn {
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: none;
+    background-color: #3b82f6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background-color: #2563eb;
+}
+
+/* Buton assign */
+.custom-blue-button {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0 16px;
+    height: 38px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.custom-blue-button:hover {
+    background-color: #2563eb;
+}
+
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reset-btn-global {
+    height: 38px;
+    width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: #ef4444; /* red */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.reset-btn-global:hover {
+    background: #b91c1c;
+}
+
+

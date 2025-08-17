@@ -24,6 +24,29 @@
       <button id="darkModeToggle" class="p-2 rounded-full border border-gray-400 hover:bg-gray-200 transition">
         🌙
       </button>
+      <!-- Notification Bell -->
+  {% if request.user.is_authenticated %}
+    <div class="relative">
+        <button id="notificationBell" class="p-2 rounded-full border border-gray-400 hover:bg-gray-200 transition relative">
+            🔔
+            {% if unread_count > 0 %}
+                <span id="notificationCount" class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                    {{ unread_count }}
+                </span>
+            {% endif %}
+        </button>
+        <div id="notificationDropdown" class="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded hidden z-50">
+            {% for notif in unread_notifications|slice:":5" %}
+                <a href="{{ notif.url }}" class="block px-4 py-2 text-sm hover:bg-gray-100 {% if not notif.read %}font-bold{% endif %}">
+                    {{ notif.message|truncatechars:50 }}
+                </a>
+            {% empty %}
+                <span class="block px-4 py-2 text-sm">Nuk ka notifikime</span>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
 
       {% if request.user.is_authenticated %}
         <span class="text-sm">Logged in as: {{ request.user.username }}</span>
@@ -72,4 +95,27 @@
       toggleBtn.textContent = "🌙";
     }
   });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const bell = document.getElementById("notificationBell");
+    const dropdown = document.getElementById("notificationDropdown");
+    const countBadge = document.getElementById("notificationCount");
+
+    if (!bell || !dropdown) return; // sigurohet që elementet ekzistojnë
+
+    // Hap/mbyll dropdown kur klikohet bell
+    bell.addEventListener("click", function(e) {
+        e.preventDefault();
+        dropdown.classList.toggle("hidden"); // toggle class "hidden"
+        if (countBadge) countBadge.style.display = "none"; // fsheh badge-in
+    });
+
+    // Mbyll dropdown kur klikohet jashtë tij
+    document.addEventListener("click", function(e) {
+        if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add("hidden");
+        }
+    });
+});
+
 </script>

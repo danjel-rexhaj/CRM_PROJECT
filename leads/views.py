@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from .models import Lead, Agent
 import datetime
+from .models import Notification
 from .models import Lead, Agent, Category
 from django.urls import reverse
 from django.views import View
@@ -11,7 +12,7 @@ from django.core.mail import send_mail
 from django.http.response import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
+from django.db.models import Q
 from django.views import generic
 from agents.mixins import OrganisorAndLoginRequiredMixin
 from .models import Lead, Agent, Category, FollowUp
@@ -105,36 +106,59 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         user = self.request.user
         if user.is_organisor:
             queryset = Lead.objects.filter(
-                organisation=user.userprofile, 
+                organisation=user.userprofile,
                 agent__isnull=False
             )
         else:
             queryset = Lead.objects.filter(
-                organisation=user.agent.organisation, 
+                organisation=user.agent.organisation,
                 agent__isnull=False
             ).filter(agent__user=user)
+
+        # --- Filtrimet ---
+        q = self.request.GET.get("q")
+        agent = self.request.GET.get("agent")
+        category = self.request.GET.get("category")
+
+        if q:
+            queryset = queryset.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(agent__user__username__icontains=q)
+            )
+        if agent:
+            queryset = queryset.filter(agent__id=agent)
+        if category:
+            queryset = queryset.filter(category__id=category)
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # unassigned leads
         if user.is_organisor:
             unassigned = Lead.objects.filter(
-                organisation=user.userprofile, 
+                organisation=user.userprofile,
                 agent__isnull=True
             )
             context["unassigned_leads"] = unassigned
-
-            # add agents for the dropdown
             context["agents"] = Agent.objects.filter(
                 organisation=user.userprofile
             )
+            context["categories"] = Category.objects.filter(
+                organisation=user.userprofile
+            )  # ✅ shtojmë kategoritë
         else:
             context["agents"] = Agent.objects.filter(
                 organisation=user.agent.organisation
             )
+            context["categories"] = Category.objects.filter(
+                organisation=user.agent.organisation
+            )  # ✅ shtojmë kategoritë edhe për agjentët
+          # --- Notifikimet për navbar ---
+        context["unread_notifications"] = user.notifications.filter(read=False)
+        context["unread_count"] = context["unread_notifications"].count()
         return context
 
 
@@ -607,7 +631,9 @@ class PublicLeadCreateView(generic.ListView):
         last_name = request.POST.get("last_name")
         email = request.POST.get("email")
         phone_number = request.POST.get("phone_number")
+        age = request.POST.get("age")
         service = request.POST.get("service")
+        source = request.POST.get("source")  # mund ta shtosh në form-in tënd
 
         if not (first_name and last_name and email):
             messages.error(request, "Plotëso të gjitha fushat e kërkuara.")
@@ -621,14 +647,12 @@ class PublicLeadCreateView(generic.ListView):
         try:
             agent = Agent.objects.get(user=admin_user)
         except Agent.DoesNotExist:
-            # Nëse nuk ekziston, e krijojmë
             agent = Agent.objects.create(user=admin_user, organisation=organisation)
 
         try:
-            new_category = Category.objects.get(name="New", organisation=organisation)
+            new_category = Category.objects.get(name="NEW", organisation=organisation)
         except Category.DoesNotExist:
             new_category = Category.objects.create(name="New", organisation=organisation)
-
 
         # Krijojmë lead
         Lead.objects.create(
@@ -636,10 +660,32 @@ class PublicLeadCreateView(generic.ListView):
             last_name=last_name,
             email=email,
             phone_number=phone_number,
+            age=age,
             organisation=organisation,
             agent=agent,
             category=new_category
         )
 
-        messages.success(request, "Faleminderit! Lead juaj u regjistrua me sukses.")
+        # Krijojmë notifikim për admin
+        Notification.objects.create(
+            user=admin_user,
+            message=f"Lead i ri: {first_name} {last_name} ({email})",
+            url="/admin/leads/lead/"
+        )
+
+        # Nëse është nga reklama
+        if source == "advertisement":
+            Notification.objects.create(
+                user=admin_user,
+                message=f"Lead nga reklama: {first_name} {last_name}",
+                url="/admin/leads/lead/"
+            )
+
+        messages.success(request, "New lead just came !")
         return redirect("leads:thank-you")
+
+    
+    
+class ThankYouView(generic.TemplateView):
+    template_name = "leads/thank_you.html"
+    

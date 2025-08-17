@@ -1,12 +1,23 @@
-<form method="POST">
-  {% csrf_token %}
-  <input type="text" name="first_name" placeholder="Emri" required>
-  <input type="text" name="last_name" placeholder="Mbiemri" required>
-  <input type="email" name="email" placeholder="Email" required>
-  <input type="tel" name="phone_number" placeholder="Numri i telefonit">
-  <select name="service" required>
-    <option value="visa_uk">Viza Angli</option>
-    <option value="visa_usa">Viza SHBA</option>
-  </select>
-  <button type="submit">Submit</button>
-</form>
+{% load static %}
+<link rel="stylesheet" href="{% static 'public_lead_form.css' %}" />
+<div class="form-container">
+    <!-- Logo -->
+    <div class="logo">
+        <img src="{% static 'images/gjergj_white.png' %}" alt="Company Logo">
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" name="first_name" placeholder="Emri" required>
+      <input type="text" name="last_name" placeholder="Mbiemri" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="tel" name="phone_number" placeholder="Numri i telefonit">
+      <input type="age" name="age" placeholder="Mosha">
+      <select name="service" required>
+        <option value="">Zgjidh shërbimin</option>
+        <option value="visa_uk">Invest</option>
+        <option value="visa_usa">Recovery</option>
+      </select>
+      <button type="submit">Submit</button>
+    </form>
+</div>

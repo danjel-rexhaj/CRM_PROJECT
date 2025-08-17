@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser
-
+from django.contrib.auth.models import User
 
 class User(AbstractUser):
     is_organisor = models.BooleanField(default=True)
@@ -76,3 +76,15 @@ def post_user_created_signal(sender, instance, created, **kwargs):
 
 
 post_save.connect(post_user_created_signal, sender=User)
+
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    url = models.CharField(max_length=200, blank=True)  # link për lead ose faqe
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message}"
