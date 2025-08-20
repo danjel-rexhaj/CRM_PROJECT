@@ -13,6 +13,9 @@
     align-items: center;
     gap: 16px;
 }
+.section{
+    margin-top: 50px;
+}
 
 .overview-header img {
     width: 72px;
@@ -173,6 +176,7 @@ header .container {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+
 }
 
 /* Çdo item brenda navbar */

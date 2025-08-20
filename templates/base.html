@@ -4,18 +4,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALBOS CRM</title>
-    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>ALBOS CRM</title>
+     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
     <link rel="icon" type="image/png" href="{% static 'images/gjergj_white.png' %}">
-    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 </head>
 <body>
+         {% include 'navbar.html' %}
+    
+    <div class="pt-32"></div>
+
     <div class="max-w-7xl mx-auto">
-        {% include 'navbar.html' %}
-        {% include 'messages.html' %}
-        {% block content %}
-        {% endblock content %}
+            {% include 'messages.html' %}
+            {% block content %}
+            {% endblock content %}
     </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let table = $('table').DataTable({
+        scrollX: true,
+        columnDefs: [
+            { orderable: true, targets: [7] },
+            { orderable: false, targets: '_all' }
+        ],
+        dom: 'Bfrtip',
+        buttons: ['colvis'],
+        pageLength: 25,
+        lengthMenu: [10, 25, 50, 100]
+    });
+});
+</script>
 </body>
 </html>

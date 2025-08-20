@@ -19,6 +19,7 @@ class LeadModelForm(forms.ModelForm):
             'email'
         )
 
+    
     def clean_first_name(self):
         data = self.cleaned_data["first_name"]
         # if data != "Joe":
@@ -63,6 +64,7 @@ class LeadCategoryUpdateForm(forms.ModelForm):
         fields = (
             'category',
         )
+        
 
 
 class CategoryModelForm(forms.ModelForm):

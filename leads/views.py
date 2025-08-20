@@ -101,6 +101,7 @@ def landing_page(request):
 class LeadListView(LoginRequiredMixin, generic.ListView):
     template_name = "leads/lead_list.html"
     context_object_name = "leads"
+    paginate_by = 10  # default
 
     def get_queryset(self):
         user = self.request.user
@@ -123,15 +124,31 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         if q:
             queryset = queryset.filter(
                 Q(first_name__icontains=q) |
-                Q(last_name__icontains=q) |
-                Q(agent__user__username__icontains=q)
+                Q(last_name__icontains=q)
             )
         if agent:
             queryset = queryset.filter(agent__id=agent)
         if category:
             queryset = queryset.filter(category__id=category)
+             # --- Filtrimet ---
+
+        sort = self.request.GET.get("sort")
+        if sort == "date_asc":
+            queryset = queryset.order_by("date_added")
+        elif sort == "date_desc":
+            queryset = queryset.order_by("-date_added")
+        elif sort == "first_asc":
+            queryset = queryset.order_by("first_name")
+        elif sort == "first_desc":
+            queryset = queryset.order_by("-first_name")
 
         return queryset
+
+    def get_paginate_by(self, queryset):
+        perpage = self.request.GET.get("perpage")
+        if perpage and perpage.isdigit():
+            return int(perpage)
+        return self.paginate_by  # default 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -148,18 +165,19 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
             )
             context["categories"] = Category.objects.filter(
                 organisation=user.userprofile
-            )  # ✅ shtojmë kategoritë
+            )
         else:
             context["agents"] = Agent.objects.filter(
                 organisation=user.agent.organisation
             )
             context["categories"] = Category.objects.filter(
                 organisation=user.agent.organisation
-            )  # ✅ shtojmë kategoritë edhe për agjentët
-          # --- Notifikimet për navbar ---
+            )
+
         context["unread_notifications"] = user.notifications.filter(read=False)
         context["unread_count"] = context["unread_notifications"].count()
         return context
+
 
 
 def lead_list(request):
@@ -688,4 +706,6 @@ class PublicLeadCreateView(generic.ListView):
     
 class ThankYouView(generic.TemplateView):
     template_name = "leads/thank_you.html"
+    
+
     

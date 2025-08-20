@@ -38,7 +38,14 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
+    
+    @property
+    def last_followup_note(self):
+        followup = self.followups.order_by('-date_added').first()
+        if followup and followup.notes:
+            # merr vetëm 30 karaktere dhe shto "..." nëse është më gjatë
+            return followup.notes[:30] + ("..." if len(followup.notes) > 30 else "")
+        return "—"
 
 def handle_upload_follow_ups(instance, filename):
     return f"lead_followups/lead_{instance.lead.pk}/{filename}"
