@@ -24,7 +24,8 @@
       <button id="darkModeToggle" class="p-2 rounded-full border border-gray-400 hover:bg-gray-200 transition">
         🌙
       </button>
-      <!-- Notification Bell -->
+
+      <!-- Notification Bell 
   {% if request.user.is_authenticated %}
     <div class="relative">
         <button id="notificationBell" class="p-2 rounded-full border border-gray-400 hover:bg-gray-200 transition relative">
@@ -46,7 +47,7 @@
         </div>
     </div>
 {% endif %}
-
+-->
 
       {% if request.user.is_authenticated %}
         <span class="text-sm">Logged in as: {{ request.user.username }}</span>

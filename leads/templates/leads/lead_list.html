@@ -55,10 +55,11 @@
                         </option>
                     {% endfor %}
                 </select>
-                <select name="perpage" id="per_page" class="border rounded px-2 py-1">
-                    <option value="10" {% if request.GET.perpage == '10' %}selected{% endif %}>10 leads per page</option>
-                    <option value="25" {% if request.GET.perpage == '25' %}selected{% endif %}>25 leads per page</option>
-                    <option value="50" {% if request.GET.perpage == '50' %}selected{% endif %}>50 leads per page</option>
+                <select name="perpage" id="per_page" class="border rounded px-2 py-1" onchange="this.form.submit()">
+                    <option value="10" {% if request.GET.perpage == "10" %}selected{% endif %}>10</option>
+                    <option value="50" {% if request.GET.perpage == "50" %}selected{% endif %}>50</option>
+                    <option value="100" {% if request.GET.perpage == "100" %}selected{% endif %}>100</option>
+                    <option value="200" {% if request.GET.perpage == "200" %}selected{% endif %}>200</option>
                 </select>
                 <div class="filter-actions">
                     <button type="submit" class="filter-btn">Filtroni</button>
@@ -97,17 +98,24 @@
                                                     <span   class="inline-flex items-center cursor-pointer space-x-6 select-none">Select_All</span>
                                                 </label>
                                             </th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First_Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last_Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"> Date Added 
-                                                <a href="?sort={% if request.GET.sort == 'date_asc' %}date_desc{% else %}date_asc{% endif %}{% if page_obj.number %}&page={{ page_obj.number }}{% endif %}"> 
-                                                    {% if request.GET.sort == 'date_asc' %} &#9650; {% else %} &#9660; {% endif %} 
-                                                </a> 
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Date Added
+                                            <a href="#" id="sort-date" 
+                                                data-sort="{% if request.GET.sort == 'date_asc' %}date_asc{% else %}date_desc{% endif %}">
+                                                {% if request.GET.sort == 'date_asc' %}
+                                                    &#9650;
+                                                {% else %}
+                                                    &#9660;
+                                                {% endif %}
+                                            </a>
                                             </th>
+
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Comment</th>
                                              {% if request.user.is_organisor %}
                                             <th class="px-6 py-3">Edit</th>
@@ -221,6 +229,39 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const sortBtn = document.getElementById("sort-date");
+
+  if (sortBtn) {
+    sortBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      let currentSort = this.dataset.sort;
+      let newSort = currentSort === "date_asc" ? "date_desc" : "date_asc";
+
+      // Merr querystring ekzistues (pa ajax), shto sort dhe ajax=1
+      let params = new URLSearchParams(window.location.search);
+      params.set("sort", newSort);
+      params.set("ajax", "1");
+
+      fetch(`?${params.toString()}`)
+        .then(res => res.text())
+        .then(html => {
+          let parser = new DOMParser();
+          let doc = parser.parseFromString(html, "text/html");
+          let newBody = doc.querySelector("tbody").innerHTML;
+          document.querySelector("tbody").innerHTML = newBody;
+
+          // update sort direction + ikonën
+          this.dataset.sort = newSort;
+          this.innerHTML = newSort === "date_asc" ? "&#9650;" : "&#9660;";
+        });
+    });
+  }
+});
+
+
 </script>
 </body>
 </html>

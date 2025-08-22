@@ -4,9 +4,11 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from .models import Lead, Agent
 import datetime
+from django.core.paginator import Paginator
 from .models import Notification
 from .models import Lead, Agent, Category
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django.views import View
 from django.core.mail import send_mail
 from django.http.response import JsonResponse
@@ -25,6 +27,11 @@ from django.views import generic
 from .models import FollowUp
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from .models import Lead
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import Notification
 from .forms import (
     LeadForm, 
     LeadModelForm, 
@@ -182,10 +189,24 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
 
 def lead_list(request):
     leads = Lead.objects.all()
-    context = {
-        "leads": leads
-    }
+
+    sort = request.GET.get("sort")
+    if sort == "date_asc":
+        leads = leads.order_by("date_added")
+    elif sort == "date_desc":
+        leads = leads.order_by("-date_added")
+
+    paginator = Paginator(leads, request.GET.get("perpage", 10))
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {"leads": page_obj, "page_obj": page_obj}
+
+    # nëse kërkesa është ajax => kthe vetëm tbody
+    if request.GET.get("ajax"):
+        return render(request, "leads/_leads_table_body.html", context)
     return render(request, "leads/lead_list.html", context)
+
 
 
 class LeadDetailView(LoginRequiredMixin, generic.DetailView):
@@ -708,4 +729,23 @@ class ThankYouView(generic.TemplateView):
     template_name = "leads/thank_you.html"
     
 
-    
+
+def lead_prev(request, pk):
+    current_lead = get_object_or_404(Lead, pk=pk)
+    prev_lead = Lead.objects.filter(id__lt=current_lead.id).order_by('-id').first()
+    if prev_lead:
+        return redirect('leads:lead-detail', pk=prev_lead.id)
+    # nëse nuk ka më të mëparshëm → shkon tek i fundit
+    last_lead = Lead.objects.order_by('-id').first()
+    return redirect('leads:lead-detail', pk=last_lead.id)
+
+
+def lead_next(request, pk):
+    current_lead = get_object_or_404(Lead, pk=pk)
+    next_lead = Lead.objects.filter(id__gt=current_lead.id).order_by('id').first()
+    if next_lead:
+        return redirect('leads:lead-detail', pk=next_lead.id)
+    # nëse nuk ka më të ardhshëm → shkon tek i pari
+    first_lead = Lead.objects.order_by('id').first()
+    return redirect('leads:lead-detail', pk=first_lead.id)
+

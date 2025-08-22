@@ -63,6 +63,7 @@ class AgentUpdateView(OrganisorAndLoginRequiredMixin, generic.UpdateView):
     def get_queryset(self):
         organisation = self.request.user.userprofile
         return Agent.objects.filter(organisation=organisation)
+    
 
 
 class AgentDeleteView(OrganisorAndLoginRequiredMixin, generic.DeleteView):

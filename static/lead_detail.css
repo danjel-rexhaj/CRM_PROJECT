@@ -13,7 +13,8 @@
     align-items: center;
     gap: 16px;
 }
-.section{
+
+.section {
     margin-top: 50px;
 }
 
@@ -28,7 +29,7 @@
 .overview-name {
     font-size: 40px;
     margin: 0;
-    line-height: 48px; /* nga 1.2 * 40px */
+    line-height: 48px;
     font-family: semibold;
 }
 
@@ -65,13 +66,13 @@
     font-weight: 500;
 }
 
+/* ---------------- Followup ---------------- */
 .followup-block {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
     padding: 12px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin: 5px 0;
     border: 1px solid #698ddd;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
@@ -103,12 +104,13 @@
     padding: 8px 12px;
 }
 
+/* ---------------- Inputs & Buttons ---------------- */
 #noteInput {
-    margin-top: 16px; /* 1rem ≈ 16px */
+    margin-top: 16px;
     width: 100%;
     border: 1px solid #698ddd;
-    border-radius: 8px; /* 0.5rem ≈ 8px */
-    padding: 5px; /* 0.75rem ≈ 12px */
+    border-radius: 8px;
+    padding: 5px;
     outline: none;
     transition: box-shadow 0.2s ease;
 }
@@ -118,22 +120,13 @@
 }
 
 #addNoteBtn {
-    margin-top: 12px; /* 0.75rem ≈ 12px */
-    padding: 8px 16px; /* 0.5rem 1rem ≈ 8px 16px */
-    border-radius: 8px; /* 0.5rem ≈ 8px */
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
     background-color: #d1d5db;
     color: white;
     cursor: not-allowed;
     transition: background-color 0.2s ease;
-}
-.saveButton{
-    margin-top: 12px; /* 0.75rem ≈ 12px */
-    padding: 8px 16px; /* 0.5rem 1rem ≈ 8px 16px */
-    border-radius: 8px; /* 0.5rem ≈ 8px */
-    background-color: #0c56c4;
-    color: white;
-    cursor: allowed;
-  
 }
 
 #addNoteBtn.enabled {
@@ -144,6 +137,22 @@
 #addNoteBtn.enabled:hover {
     background-color: #2563eb;
 }
+
+/* Light Mode Save Button */
+.saveButton {
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background-color: #3b82f6; /* blu e fortë */
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.saveButton:hover {
+    background-color: #2563eb; /* blu më e errët */
+}
+
 
 .edit-button {
     padding: 4px 8px;
@@ -159,55 +168,41 @@
     background-color: #2563eb;
     cursor: pointer;
 }
+
 .update-btn-container {
     display: flex;
-    justify-content: flex-end; /* shtyn butonin maksimalisht djathtas */ 
+    justify-content: flex-end;
 }
 
-
-
-
-
-
-
-/* Container i navbar-it */
+/* ---------------- Navbar & Notifications ---------------- */
 header .container {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-
 }
 
-/* Çdo item brenda navbar */
 .navbar-item {
-    margin-left: 15px;    /* Hapsira mes elementëve */
+    margin-left: 15px;
 }
 
-/* Dark Mode Toggle */
-#darkModeToggle {
+#darkModeToggle,
+#notificationBell {
     padding: 8px;
     border-radius: 50%;
     border: 1px solid #ccc;
     cursor: pointer;
     margin-right: 15px;
-}
-
-/* Bell i notifikimeve */
-#notificationBell {
-    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
-    border-radius: 50%;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    margin-right: 15px;
 }
 
-/* Numri i unread */
+#notificationBell {
+    background-color: #f9f9f9;
+    position: relative;
+}
+
 #notificationCount {
     position: absolute;
     top: -5px;
@@ -224,36 +219,8 @@ header .container {
     border-radius: 50%;
 }
 
-/* Dropdown i notifikimeve */
 #notificationDropdown {
-    position: absolute;
-    top: 40px;       /* vendos poshtë bell-it */
-    right: 0;
-    width: 250px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
-    padding: 0;
-    display: none;   /* shfaqet me JS */
-    z-index: 50;
-}
-
-/* Çdo notifikim brenda dropdown */
-#notificationDropdown a {
-    display: block;
-    padding: 10px 15px;
-    font-size: 14px;
-    color: #333;
-    text-decoration: none;
-}
-
-#notificationDropdown a:hover {
-    background-color: #f0f0f0;
-}
-
-#notificationDropdown {
-    display: none; /* fshehur fillimisht */
+    display: none;
     position: absolute;
     top: 40px;
     right: 0;
@@ -277,86 +244,527 @@ header .container {
     background-color: #f0f0f0;
 }
 
-
-/* LIGHT MODE (default)   */
-/*
+/* ---------------- Light Mode ---------------- */
 body {
-  background-color: #ffffff;
-  color: #1a1a1a;
-  transition: background 0.3s, color 0.3s;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    transition: background 0.3s, color 0.3s;
 }
 
 header {
-  background: #f9fafb;
-  color: #1a1a1a;
+    background: #f9fafb;
+    color: #1a1a1a;
 }
 
 a {
-  color: #2563eb; 
+    color: #2563eb;
 }
-
 
 button,
 .bg-gray-200 {
-  background-color: #e5e7eb;
-  color: #1a1a1a;
+    background-color: #e5e7eb;
+    color: #1a1a1a;
 }
 
 button:hover,
 .hover\:bg-gray-300:hover {
-  background-color: #d1d5db;
+    background-color: #d1d5db;
 }
 
-
 table {
-  background-color: #ffffff;
-  color: #1a1a1a;
-  border-collapse: collapse;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border-collapse: collapse;
 }
 
 table th,
 table td {
-  border: 1px solid #d1d5db;
-  padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    padding: 8px 12px;
 }
 
-/* ---------------------- */
-/* DARK MODE              */
-/* ---------------------- */
-/*
+/* ---------------- Dark Mode ---------------- */
 body.dark {
-  background-color: #18181b; 
-  color: #e4e4e7;
+    background-color: #202124;
+    color: #e8eaed;
 }
-
-body.dark header {
-  background: #27272a;
-  color: #f4f4f5;
-}
-
-body.dark a {
-  color: #60a5fa; 
-}
-
-body.dark button,
-body.dark .bg-gray-200 {
-  background-color: #3f3f46 !important;
-  color: #f4f4f5 !important;
-}
-
-body.dark button:hover,
-body.dark .hover\:bg-gray-300:hover {
-  background-color: #52525b !important;
-}
-
 
 body.dark table {
-  background-color: #2e2e33;
-  color: #f4f4f5;
+    background: #2d2f31;
+    color: #e8eaed;
 }
 
-body.dark table th,
-body.dark table td {
-  border: 1px solid #3f3f46;
+body.dark th {
+    background: #3c4043;
+    color: #e8eaed;
 }
-*/
+
+body.dark td {
+    border-color: #5f6368;
+}
+
+/* Hiq sfondin e bardhë të kutive në dark mode */
+body.dark .overview-block,
+body.dark .followup-block,
+body.dark table,
+body.dark th,
+body.dark td {
+    background: #1e293b;   /* blu e errët elegante */
+    color: #e2e8f0;        /* tekst gri e qartë */
+    border-color: #334155; /* kufi më i butë */
+}
+
+/* Opsionale: hover mbi rreshtat e tabelës */
+body.dark table tr:hover {
+    background: #2d3b52;
+}
+
+/* Titujt */
+body.dark h1, 
+body.dark h2, 
+body.dark h3, 
+body.dark label {
+    color: #f1f5f9;
+}
+
+/* ================= Dark Mode Extra ================= */
+
+/* Filtrimi, dropdowns, inputet dhe butonat */
+body.dark input,
+body.dark select,
+body.dark button {
+    background: #1e293b;   /* blu e errët */
+    color: #e2e8f0;        /* tekst gri e hapur */
+    border: 1px solid #334155;
+    border-radius: 6px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+body.dark input:focus,
+body.dark select:focus,
+body.dark button:focus {
+    outline: none;
+    border-color: #3b82f6;   /* blu më e fortë kur fokusohet */
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.4);
+}
+
+/* Butonat aktivë */
+body.dark button {
+    background-color: #2563eb;  /* blu e fortë */
+    color: #fff;
+    cursor: pointer;
+}
+body.dark button:hover {
+    background-color: #1e40af;  /* blu më e errët kur kalon miu */
+}
+
+/* Pagination (faqet poshtë) */
+body.dark .pagination a,
+body.dark .pagination span {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    padding: 6px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+body.dark .pagination a:hover {
+    background: #2563eb;  /* highlight kur kalon miu */
+    color: #fff;
+}
+
+body.dark .pagination .active span {
+    background: #2563eb;  /* faqja aktive blu */
+    color: #fff;
+    border-color: #2563eb;
+}
+
+/* ================= NAVBAR Dark ================= */
+body.dark header {
+  background-color: #1e293b; /* blu e errët */
+  color: #f1f5f9;
+  border-bottom: 1px solid #334155;
+}
+
+body.dark header a {
+  color: #e2e8f0;
+  transition: color 0.2s ease;
+}
+
+body.dark header a:hover {
+  color: #60a5fa; /* blu e hapur kur kalon miu */
+}
+
+body.dark #darkModeToggle,
+body.dark #notificationBell {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+}
+
+body.dark #notificationDropdown {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+body.dark #notificationDropdown a {
+  color: #e2e8f0;
+}
+
+body.dark #notificationDropdown a:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* ================= Filter & Assign Agent ================= */
+body.dark .filter-form,
+body.dark .assign-form {
+  background: #1e293b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.dark .filter-form input,
+body.dark .filter-form select,
+body.dark .assign-form select {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+body.dark .filter-btn,
+body.dark .custom-blue-button {
+  background: #2563eb;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+body.dark .filter-btn:hover,
+body.dark .custom-blue-button:hover {
+  background: #1e40af;
+}
+
+body.dark .reset-btn-global {
+  color: #f87171; /* e kuqe për reset */
+  font-weight: bold;
+  margin-left: 6px;
+  text-decoration: none;
+}
+
+/* Search input with lupa icon */
+body.dark .search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+body.dark .search-input-wrapper .search-icon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8; /* gri e lehtë */
+  font-size: 14px;
+}
+
+body.dark .search-input-wrapper input {
+  padding-left: 32px; /* hapësirë për ikonën */
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  height: 36px;
+}
+
+/* ===== Lead Detail Custom Styling ===== */
+
+/* Input textarea për komente */
+body.dark #noteInput {
+  width: 100%;
+  background-color: #1e293b; /* blu e errët */
+  color: #f8fafc;            /* tekst i bardhë */
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 10px;
+  resize: none;
+}
+
+/* Butoni Add Note */
+body.dark #addNoteBtn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background-color: #334155;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transition: all 0.2s ease-in-out;
+}
+body.dark #addNoteBtn.enabled {
+  background-color: #3b82f6;
+  color: white;
+  cursor: pointer;
+}
+body.dark #addNoteBtn.enabled:hover {
+  background-color: #2563eb;
+}
+
+/* Bloku i çdo followup */
+body.dark .followup-block {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px;
+  color: #f8fafc;
+}
+
+/* Header i followup (emër + datë) */
+body.dark .followup-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+body.dark .followup-header .agent-name {
+  font-weight: 600;
+  color: #60a5fa; /* blu e çelët për agjentin */
+}
+body.dark .followup-header .date-added {
+  color: #cbd5e1; /* gri e çelët për datën */
+  font-size: 0.8rem;
+}
+
+/* Teksti i komentit */
+body.dark .followup-notes {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #f1f5f9;
+  margin-bottom: 6px;
+}
+
+/* Butoni Update */
+body.dark .update-button {
+  display: inline-block;
+  font-size: 0.85rem;
+  background-color: #3b82f6;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+body.dark .update-button:hover {
+  background-color: #2563eb;
+}
+
+/* ===== Overview Labels & Values ===== */
+body.dark .overview-label {
+  color: #f1f5f9;   /* tekst i bardhë për etiketat */
+  font-weight: 500;
+}
+
+body.dark .overview-value {
+  color: #e2e8f0;   /* pak më e butë se e bardha, por qartë */
+}
+
+/* Drop-down (status) */
+body.dark select {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+body.dark select option {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* Butoni Save */
+body.dark .saveButton {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+body.dark .saveButton:hover {
+  background-color: #2563eb;
+}
+
+
+
+/* Light mode arrows */
+.nav-arrow {
+  font-size: 20px;
+  color: #2563eb; /* blu e fortë */
+  padding: 6px;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.nav-arrow:hover {
+  background: rgba(37, 99, 235, 0.1); /* blu e lehtë */
+  color: #1e40af;
+}
+
+/* Dark mode arrows */
+body.dark .nav-arrow {
+  color: #60a5fa; /* blu e butë */
+}
+body.dark .nav-arrow:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+
+/* Light mode inputs */
+.overview-input {
+  background: #fff;      /* e bardhë */
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #111;           /* tekst i zi */
+}
+.overview-input:focus {
+  outline: none;
+  border-color: #2563eb; /* blu e fortë */
+  background: #f9fafb;   /* gri e lehtë */
+}
+
+/* Dark mode inputs */
+body.dark .overview-input {
+  background: #1f2937;   /* gri e errët */
+  border: 1px solid #374151;
+  color: #f8fafc;        /* tekst i bardhë */
+}
+body.dark .overview-input:focus {
+  border-color: #60a5fa;
+  background: #111827;
+}
+
+.lead-name {
+  font-size: 3rem;        /* shume i madh (48px) */
+  font-weight: 800;       /* super bold */
+  padding: 12px 32px;  
+  letter-spacing: 1px;    
+  color: #000000;         /* default në light mode → i zi */
+}
+
+/* Dark Mode */
+body.dark .lead-name {
+  color: #ffffff;         /* bëhet i bardhë */
+}
+
+  /* bën 2 kolona të barabarta, rreshtuar si: 
+     First Name | Age
+     Last Name  | Status
+     Email      | Phone Number  */
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;   /* 2 kolona */
+    gap:20px 40px;                   /* rreshta | kolona */
+    align-items:start;
+  }
+  .form-group{display:flex;flex-direction:column;}
+  .form-group label{font-weight:600;margin-bottom:6px;}
+
+  /* butoni Save poshtë, qendër dhe zë të dyja kolonat */
+  .save-wrapper{grid-column:1 / -1;text-align:center;margin-top:8px;}
+
+  /* pak hendek midis shigjetave dhe emrit */
+  .lead-header{margin:22px 0 28px;gap:18px;}
+
+  /* responsive: ne ekrane te vegjel behet 1 kolonë */
+  @media (max-width: 1024px){
+    .form-grid{grid-template-columns:1fr;}
+    .save-wrapper{grid-column:auto;}
+  }
+
+
+  /* Login button - në dark mode */
+body.dark a[href*="login"] {
+  background-color: #374151;   /* ngjyra gri e errët si butonat në dark mode */
+  color: #ffffff !important;   /* tekst i bardhë */
+  border-radius: 0.5rem;       /* rrumbullakim */
+  padding: 0.25rem 0.75rem;    /* padding si Logout */
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+body.dark a[href*="login"]:hover {
+  background-color: #4b5563;   /* gri më e hapur kur vendoset mouse */
+}
+
+/* Dark mode - Emri dhe Emaili */
+body.dark .overview-name {
+  color: #ffffff;   /* Emri bardhë */
+}
+
+body.dark .overview-email {
+  color: #ffffff;   /* Email bardhë */
+}
+
+
+/* ================= Dark Mode për Update Note ================= */
+
+/* Titulli */
+body.dark h1 {
+  color: #ffffff;
+}
+
+/* Link "Go back to notes" */
+body.dark a[href*="lead-detail"] {
+  color: #60a5fa;   /* blu e çelët */
+}
+body.dark a[href*="lead-detail"]:hover {
+  color: #93c5fd;   /* blu më e hapur kur kalon miu */
+}
+
+/* Vijat ndarëse */
+body.dark .border-gray-200 {
+  border-color: #374151 !important; /* gri e errët */
+}
+
+/* Teksti i label (Notes) */
+body.dark label {
+  color: #e5e7eb !important; /* gri e hapur (shumë afër bardhës) */
+}
+
+/* Input / textarea */
+body.dark input,
+body.dark textarea {
+  background-color: #1f2937;  /* gri e errët */
+  color: #f8fafc;             /* tekst i bardhë */
+  border: 1px solid #374151;
+}
+body.dark input:focus,
+body.dark textarea:focus {
+  border-color: #60a5fa;
+  outline: none;
+}
+
+/* Butoni Submit */
+body.dark button[type="submit"] {
+  background-color: #2563eb;
+  color: #fff;
+}
+body.dark button[type="submit"]:hover {
+  background-color: #1e40af;
+}
+
+/* Butoni Delete */
+body.dark a.bg-red-500 {
+  background-color: #dc2626;
+  color: #fff;
+}
+body.dark a.bg-red-500:hover {
+  background-color: #b91c1c;
+}

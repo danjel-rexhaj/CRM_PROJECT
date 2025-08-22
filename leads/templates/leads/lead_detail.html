@@ -5,129 +5,108 @@
 <link rel="stylesheet" href="{% static 'lead_detail.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+
 <section class="body-font overflow-hidden">
   <div class="container px-5 py-24 mx-auto">
-      <a href="{% url 'leads:lead-list' %}"
-        class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
-        <p style="text-align:left;font-size:22px;">
-          <i class="fa-solid fa-arrow-left"></i>
-           Go back to lead list
-        </p>
+
+    <!-- Go back button -->
+    <a href="{% url 'leads:lead-list' %}"
+       class="flex-grow border-b border-gray-300 py-2 text-lg text-center">
+      <p style="text-align:left;font-size:22px;">
+        <i class="fa-solid fa-arrow-left"></i>
+        Go back to lead list
+      </p>
+    </a>
+
+    <!-- Emri i madh + shigjetat -->
+    <div class="lead-header flex items-center justify-center">
+      <a href="{% url 'leads:lead-prev' lead.pk %}" class="nav-arrow text-3xl">
+        <i class="fa-solid fa-chevron-left"></i>
       </a>
-    <!-- Tabs -->
-    <div class="mb-6 flex border-b border-gray-300">
-      <a href="{% url 'leads:lead-detail' lead.pk %}"
-         class="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg text-center">
-        Overview
+      <h2 class="lead-name">{{ lead.first_name }} {{ lead.last_name }}</h2>
+      <a href="{% url 'leads:lead-next' lead.pk %}" class="nav-arrow text-3xl">
+        <i class="fa-solid fa-chevron-right"></i>
       </a>
-       {% if user.is_organisor %}
-      <a href="{% url 'leads:lead-update' lead.pk %}"
-         class="flex-grow border-b-2 border-gray-300 py-2 text-lg text-center">
-        Update Details
-      </a>
-      {% endif %}
-      
     </div>
 
-    <div class="flex flex-wrap gap-6">
-
-      <!-- Kolona e majtë - Overview -->
-      <div class="overview-block w-full lg:w-2/5">
-        
-        <!-- Header -->
-        <div class="overview-header">
-          {% if lead.profile_picture %}
-            <img src="{{ lead.profile_picture.url }}" alt="{{ lead.first_name }}">
-          {% endif %}
-          <div class="overview-name">
-            <h2 class="text-2xl font-semibold">
-              {{ lead.first_name }} {{ lead.last_name }}
-            </h2>
-          </div>
-        </div>
-
-        <!-- Form status + info -->
+    <!-- Blloku i formës -->
+    <div class="flex flex-wrap justify-center">
+      <div class="overview-block w-full lg:w-3/5 p-6 rounded-lg">
         <form method="post"
               action="{% url 'leads:lead-category-update' lead.pk %}"
-              id="statusForm">
+              id="statusForm"
+              class="mt-2">
           {% csrf_token %}
-          
-          <div class="overview-rows">
-            <div class="overview-row">
-              <span class="overview-label">Email</span>
-              <span class="overview-value">{{ lead.email }}</span>
+
+          <div class="form-grid">
+            <!-- Rreshti 1 -->
+            <div class="form-group">
+              <label class="overview-label">First Name</label>
+              <input type="text" value="{{ lead.first_name }}" readonly class="overview-input">
+            </div>
+            <div class="form-group">
+              <label class="overview-label">Age</label>
+              <input type="text" value="{{ lead.age }}" readonly class="overview-input">
             </div>
 
-            <div class="overview-row">
-              <span class="overview-label">Age</span>
-              <span class="overview-value">{{ lead.age }}</span>
+            <!-- Rreshti 2 -->
+            <div class="form-group">
+              <label class="overview-label">Last Name</label>
+              <input type="text" value="{{ lead.last_name }}" readonly class="overview-input">
             </div>
-
-            <div class="overview-row">
-              <span class="overview-label">Status</span>
+            <div class="form-group">
+              <label class="overview-label">Status</label>
               {{ form.category }}
             </div>
 
-            <div class="overview-row">
-              <span class="overview-label">Phone Number</span>
-              <span class="overview-value">{{ lead.phone_number }}</span>
+            <!-- Rreshti 3 -->
+            <div class="form-group">
+              <label class="overview-label">Email</label>
+              <input type="text" value="{{ lead.email }}" readonly class="overview-input">
+            </div>
+            <div class="form-group">
+              <label class="overview-label">Phone Number</label>
+              <input type="text" value="{{ lead.phone_number }}" readonly class="overview-input">
+            </div>
+
+            <!-- Save -->
+            <div class="save-wrapper">
+              <button type="submit" id="saveButton" class="saveButton">Save</button>
             </div>
           </div>
-
-          <!-- Butoni Save -->
-          <button type="submit" id="saveButton" class="saveButton">
-            Save
-          </button>
         </form>
-      </div>
-
-      <!-- Kolona e djathtë - Notes -->
-      <div class="w-full lg:w-3/5">
-
-        <!-- Form për shtim note -->
-        <form method="POST"
-              action="{% url 'leads:lead-followup-create' lead.pk %}"
-              class="mb-4">
-          {% csrf_token %}
-          <textarea id="noteInput"
-                    name="notes"
-                    rows="2"
-                    placeholder="Shkruaj nje koment..."></textarea>
-          <button id="addNoteBtn" type="submit" disabled>
-            Add Note
-          </button>
-        </form>
-
-        <!-- Lista e followups -->
-        <div class="space-y-3">
-          {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
-            <div class="followup-block"
-                 data-is-admin="{{ request.user.is_superuser|yesno:'true,false' }}">
-
-              <div class="followup-header">
-                <span class="agent-name">{{ followup.agent.username }}</span>
-                <span class="date-added"
-                      data-timestamp="{{ followup.date_added|date:'U' }}">
-                  {{ followup.date_added|date:"d M Y, H:i" }}
-                </span>
-              </div>
-
-              <p class="followup-notes">{{ followup.notes }}</p>
-
-              {% if request.user.is_superuser or followup.agent == request.user %}
-                <div class="update-btn-container">
-                  <a href="{% url 'leads:lead-followup-update' followup.pk %}"
-                     class="edit-button update-button">
-                    Update
-                  </a>
-                </div>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
-
       </div>
     </div>
+
+    <!-- Notes -->
+    <div class="w-full lg:w-3/5 mt-10 mx-auto">
+      <form method="POST" action="{% url 'leads:lead-followup-create' lead.pk %}" class="mb-4">
+        {% csrf_token %}
+        <textarea id="noteInput" name="notes" rows="2" placeholder="Shkruaj nje koment..."></textarea>
+        <button id="addNoteBtn" type="submit" disabled>Add Note</button>
+      </form>
+
+      <div class="space-y-3">
+        {% for followup in lead.followups.all|dictsortreversed:"date_added" %}
+          <div class="followup-block" data-is-admin="{{ request.user.is_superuser|yesno:'true,false' }}">
+            <div class="followup-header">
+              <span class="agent-name">{{ followup.agent.username }}</span>
+              <span class="date-added" data-timestamp="{{ followup.date_added|date:'U' }}">
+                {{ followup.date_added|date:"d M Y, H:i" }}
+              </span>
+            </div>
+            <p class="followup-notes">{{ followup.notes }}</p>
+
+            {% if request.user.is_superuser or followup.agent == request.user %}
+              <div class="update-btn-container">
+                <a href="{% url 'leads:lead-followup-update' followup.pk %}" class="edit-button update-button">Update</a>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
   </div>
 </section>
 
