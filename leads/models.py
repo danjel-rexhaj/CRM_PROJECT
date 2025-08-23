@@ -2,7 +2,11 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User
-
+from django.db import models
+from django.db.models.signals import post_save
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+import uuid
 class User(AbstractUser):
     is_organisor = models.BooleanField(default=True)
     is_agent = models.BooleanField(default=False)
@@ -21,6 +25,7 @@ class LeadManager(models.Manager):
 
 
 class Lead(models.Model):
+
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=20)
     age = models.IntegerField(default=0)
@@ -32,9 +37,11 @@ class Lead(models.Model):
     email = models.EmailField()
     profile_picture = models.ImageField(null=True, blank=True, upload_to="profile_pictures/")
     converted_date = models.DateTimeField(null=True, blank=True)
-    service = models.CharField(max_length=100, blank=True, null=True)  # ← shto këtu
+    service = models.CharField(max_length=100, blank=True, null=True)
+
 
     objects = LeadManager()
+
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

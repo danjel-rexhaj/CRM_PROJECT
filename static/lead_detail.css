@@ -828,3 +828,10 @@ body.dark #notificationDropdown .btn-ghost{ background:#334155; color:#e2e8f0; }
 body.dark #notificationDropdown .btn-ghost:hover{ background:#1e40af; color:#fff; }
 
 .hidden { display: none !important; }
+
+.form-checkbox{
+  cursor: pointer;
+}
+.select-text {
+  cursor: pointer;
+}

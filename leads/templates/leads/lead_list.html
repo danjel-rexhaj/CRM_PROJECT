@@ -94,9 +94,10 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 <label class="inline-flex items-center cursor-pointer space-x-4 select-none select-all-label">
                                                     <input type="checkbox" id="select-all" class="form-checkbox h-6 w-6 text-blue-600 space-x-6" />
-                                                    <span   class="inline-flex items-center cursor-pointer space-x-6 select-none">Select_All</span>
+                                                    <span   class=" select-text inline-flex items-center cursor-pointer space-x-6 select-none">Select_All</span>
                                                 </label>
                                             </th>
+                                            <th>ID</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First_Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last_Name</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
@@ -126,6 +127,9 @@
                                             <tr class="bg-white">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <input type="checkbox" name="lead_ids" value="{{ lead.pk }}" class="lead-checkbox">
+                                                </td>
+                                                <td class="font-mono">
+                                                    {{ lead.id }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium clickable-cell">
                                                     <a href="{% url 'leads:lead-detail' lead.pk %}">
