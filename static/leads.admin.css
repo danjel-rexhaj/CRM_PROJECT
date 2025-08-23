@@ -296,3 +296,53 @@ body.dark .pagination a.bg-blue-500.text-white.border-blue-500 {
   border-color: #2563eb !important;
   font-weight: 700;
 }
+
+
+/* bazë për të gjitha badge-t */
+.status-badge{
+  display:inline-flex; align-items:center;
+  
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius:9999px;
+  font-size: 12px;  
+  font-weight:700; 
+  line-height:1;
+}
+
+/* ngjyrat sipas kategorisë (light) */
+.status-converted       { background:#dcfce7; color:#166534; } /* green  */
+.status-new             { background:#dbeafe; color:#1e40af; } /* blue   */
+.status-live            { background:#e0e7ff; color:#30a33f; } /* indigo */
+.status-call-back       { background:#fef3c7; color:#92400e; } /* amber  */
+.status-not-interested  { background:#fee2e2; color:#991b1b; } /* red    */
+.status-no-answer       { background:#f5f5f5; color:#374151; } /* gray   */
+.status-unassigned      { background:#e5e7eb; color:#111827; } /* gray   */
+
+/* dark mode (opsionale) */
+@media (prefers-color-scheme: dark){
+  .status-converted       { background:rgba(16,185,129,.15); color:#50dda9; }
+  .status-new             { background:rgba(59,130,246,.15); color:#71affc; }
+  .status-live            { background:rgba(174, 13, 238, 0.18); color:#df63e4; }
+  .status-call-back       { background:rgba(245,158,11,.18); color:#fbbf24; }
+  .status-not-interested  { background:rgba(219, 34, 34, 0.18);  color:#f87171; }
+  .status-no-answer       { background:rgba(156,163,175,.18);color:#d1d5db; }
+  .status-unassigned      { background:rgba(156,163,175,.15);color:#e5e7eb; }
+}
+
+
+/* Reset Password page */
+.reset_password{
+  margin-top: 200px;
+}
+
+.reset_password h1{
+  text-align: center;
+  margin-bottom: 30px;
+}
+.reset_password_button{
+  margin-bottom: 30px;
+  margin-top: 10px;
+}

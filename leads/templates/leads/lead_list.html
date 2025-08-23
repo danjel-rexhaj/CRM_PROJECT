@@ -140,16 +140,15 @@
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.email }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.phone_number }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
-                                                    {% if lead.category %}
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                            {{ lead.category.name }}
-                                                        </span>
-                                                    {% else %}
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                            Unassigned
-                                                        </span>
-                                                    {% endif %}
+                                                {% if lead.category %}
+                                                    <span class="status-badge status-{{ lead.category.name|slugify }}">
+                                                    {{ lead.category.name }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="status-badge status-unassigned">Unassigned</span>
+                                                {% endif %}
                                                 </td>
+
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {% if lead.agent %}
                                                         {{ lead.agent.user.get_full_name }}

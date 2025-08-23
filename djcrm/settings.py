@@ -139,6 +139,18 @@ LOGOUT_REDIRECT_URL = "/"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = 'tailwind'
 
+# --- EMAIL (SMTP) ---
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+from django.conf import settings
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env.int("EMAIL_PORT", 587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", False)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
@@ -153,13 +165,15 @@ if not DEBUG:
 
     ALLOWED_HOSTS = ["*"]
 
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    # --- EMAIL (SMTP) ---
+    #EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = env("EMAIL_HOST")
+    EMAIL_PORT = env.int("EMAIL_PORT", 587)
+    EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", True)
+    EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", False)
     EMAIL_HOST_USER = env("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-    EMAIL_USE_TLS = True
-    EMAIL_PORT = env("EMAIL_PORT")
-    DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+    DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
 
 LOGGING = {
