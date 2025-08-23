@@ -211,3 +211,89 @@
     margin-bottom:60px;
     margin-top: 40px;
 }
+/* ================= Scrollbar ================= */
+
+/* Light mode (default) */
+.table-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #e5e7eb; /* blu thumb + gri track */
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.table-scroll::-webkit-scrollbar-track {
+  background: #e5e7eb; /* gray-300 */
+  border-radius: 8px;
+}
+.table-scroll::-webkit-scrollbar-thumb {
+  background: #3b82f6; /* blue-500 */
+  border-radius: 8px;
+}
+.table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #2563eb; /* blue-600 */
+}
+
+/* Dark mode */
+body.dark .table-scroll {
+  scrollbar-color: #60a5fa #0f172a; /* blu e hapur + sfond i errët */
+}
+body.dark .table-scroll::-webkit-scrollbar-track {
+  background: #0f172a; /* slate-900 */
+}
+body.dark .table-scroll::-webkit-scrollbar-thumb {
+  background: #60a5fa; /* blue-400 */
+}
+body.dark .table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6; /* blue-500 */
+}
+
+/* ================= Clickable cell ================= */
+
+/* Light mode */
+.clickable-cell {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.clickable-cell:hover {
+  background-color: #f1f5f9; /* slate-100 */
+}
+.clickable-cell a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Dark mode */
+body.dark .clickable-cell:hover {
+  background-color: #2d3b52; /* blu-gri e errët për hover */
+}
+body.dark .clickable-cell a {
+  color: inherit;
+}
+
+/* Vetëm DARK mode – mos prek light */
+body.dark .pagination a {
+  background: #111827;             /* bazë e errët për faqet jo-aktive */
+  color: #e2e8f0;
+  border: 1px solid #374151;
+}
+
+body.dark .pagination a:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+/* *** Faqja AKTIVE në dark mode ***
+   Përdor të njëjtat klasa që vendos template-i në light mode */
+body.dark .pagination a.bg-blue-500.text-white.border-blue-500 {
+  background: #2563eb !important;  /* e njëjta ngjyrë si hover */
+  color: #fff !important;
+  border-color: #2563eb !important;
+  font-weight: 700;
+}
+

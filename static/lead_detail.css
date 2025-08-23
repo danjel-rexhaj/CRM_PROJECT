@@ -219,30 +219,7 @@ header .container {
     border-radius: 50%;
 }
 
-#notificationDropdown {
-    display: none;
-    position: absolute;
-    top: 40px;
-    right: 0;
-    width: 250px;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    z-index: 50;
-}
 
-#notificationDropdown a {
-    display: block;
-    padding: 10px 15px;
-    font-size: 14px;
-    color: #333;
-    text-decoration: none;
-}
-
-#notificationDropdown a:hover {
-    background-color: #f0f0f0;
-}
 
 /* ---------------- Light Mode ---------------- */
 body {
@@ -768,3 +745,86 @@ body.dark a.bg-red-500 {
 body.dark a.bg-red-500:hover {
   background-color: #b91c1c;
 }
+
+/* container si “toast” lart majtas */
+#flash-messages{
+  position: fixed;
+  top: 70px;
+  left: 12px;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* kartat */
+.flash-msg{
+  background: #d1fae5;           /* jeshile e lehtë */
+  color: #065f46;
+  border: 1px solid #10b981;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.1);
+  transition: opacity .35s ease, transform .35s ease;
+}
+.flash-msg.fade-out{
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* dark mode */
+body.dark .flash-msg{
+  background:#064e3b; color:#ecfdf5; border-color:#10b981;
+}
+
+
+
+
+/* ===== Notifications dropdown (light) ===== */
+#notificationDropdown{
+  position:absolute; right:0; top:40px; width:260px;
+  background:#fff; border:1px solid #ddd; border-radius:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1); z-index:9999;
+}
+
+/* lista me scroll */
+#notificationDropdown .notif-list{
+  max-height:240px; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:6px 0 0 0;
+}
+
+/* një item njoftimi */
+#notificationDropdown .notif-item{
+  display:block; padding:10px 14px; font-size:14px;
+  color:#111827; text-decoration:none;
+}
+#notificationDropdown .notif-item:hover{ background:#f0f0f0; }
+
+/* kur s’ka njoftime */
+#notificationDropdown .notif-empty{
+  display:block; padding:10px 14px; font-size:14px; color:#6b7280;
+}
+
+/* footer – butonat në dy cepat */
+#notificationDropdown .notif-footer{
+  display:flex; justify-content:space-between; align-items:center;
+  width:100%; padding:8px 10px; border-top:1px solid #e5e7eb;
+}
+
+/* butonat e footer-it */
+#notificationDropdown .btn-ghost{
+  padding:6px 10px; border-radius:6px;
+  background:#e5e7eb; color:#111827; border:0; cursor:pointer;
+}
+#notificationDropdown .btn-ghost:hover{ background:#d1d5db; }
+
+/* ===== Dark mode overrides ===== */
+body.dark #notificationDropdown{ background:#1e293b; border-color:#334155; }
+body.dark #notificationDropdown .notif-item{ color:#e2e8f0; }
+body.dark #notificationDropdown .notif-item:hover{ background:#2563eb; color:#fff; }
+body.dark #notificationDropdown .notif-empty{ color:#94a3b8; }
+body.dark #notificationDropdown .notif-footer{ border-top-color:#334155; }
+body.dark #notificationDropdown .btn-ghost{ background:#334155; color:#e2e8f0; }
+body.dark #notificationDropdown .btn-ghost:hover{ background:#1e40af; color:#fff; }
+
+.hidden { display: none !important; }

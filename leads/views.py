@@ -4,6 +4,16 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from .models import Lead, Agent
 import datetime
+from django.utils.timezone import now
+from django.views.decorators.http import require_GET, require_POST
+from django.utils.dateparse import parse_datetime
+from django.middleware.csrf import get_token
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.urls import reverse
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.urls import reverse
 from django.core.paginator import Paginator
 from .models import Notification
 from .models import Lead, Agent, Category
@@ -15,6 +25,13 @@ from django.http.response import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.utils.timezone import now
+from django.views.decorators.http import require_GET, require_POST
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.views.decorators.csrf import csrf_exempt   
+from django.middleware.csrf import get_token
+from django.utils.dateparse import parse_datetime
 from django.views import generic
 from agents.mixins import OrganisorAndLoginRequiredMixin
 from .models import Lead, Agent, Category, FollowUp
@@ -31,7 +48,6 @@ from django.shortcuts import get_object_or_404, redirect
 from .models import Lead
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import Notification
 from .forms import (
     LeadForm, 
     LeadModelForm, 
@@ -652,6 +668,16 @@ class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
         leads = Lead.objects.filter(id__in=lead_ids, organisation=user.userprofile)
         updated_count = leads.update(agent=agent)
 
+        if updated_count > 0 and agent.user:
+            sample_names = list(leads.values_list("first_name", flat=True)[:3])
+            names_str = ", ".join(sample_names)
+            extra = f" +{updated_count - 3} të tjerë" if updated_count > 3 else ""
+            Notification.objects.create(
+                user=agent.user,
+                message=f"U caktuan {updated_count} leads tek ju: {names_str}{extra}",
+                url=reverse("leads:lead-list"),
+            )
+
         messages.success(request, f"{updated_count} leads janë caktuar te agjenti {agent.user.get_full_name()}.")
         return redirect('leads:lead-list')
     
@@ -705,26 +731,25 @@ class PublicLeadCreateView(generic.ListView):
             category=new_category
         )
 
-        # Krijojmë notifikim për admin
-        Notification.objects.create(
-            user=admin_user,
-            message=f"Lead i ri: {first_name} {last_name} ({email})",
-            url="/admin/leads/lead/"
-        )
+        # Krijojmë notifikim për admin  <-- E KOMENTUAR SE E BËN SIGNAL-I
+        # Notification.objects.create(
+        #     user=admin_user,
+        #     message=f"Lead i ri: {first_name} {last_name} ({email})",
+        #     url="/admin/leads/lead/"
+        # )
 
-        # Nëse është nga reklama
-        if source == "advertisement":
-            Notification.objects.create(
-                user=admin_user,
-                message=f"Lead nga reklama: {first_name} {last_name}",
-                url="/admin/leads/lead/"
-            )
+        # Nëse është nga reklama  <-- E KOMENTUAR SE E BËN SIGNAL-I
+        # if source == "advertisement":
+        #     Notification.objects.create(
+        #         user=admin_user,
+        #         message=f"Lead nga reklama: {first_name} {last_name}",
+        #         url="/admin/leads/lead/"
+        #     )
 
         messages.success(request, "New lead just came !")
         return redirect("leads:thank-you")
 
-    
-    
+
 class ThankYouView(generic.TemplateView):
     template_name = "leads/thank_you.html"
     
@@ -749,3 +774,66 @@ def lead_next(request, pk):
     first_lead = Lead.objects.order_by('id').first()
     return redirect('leads:lead-detail', pk=first_lead.id)
 
+@login_required
+@require_GET
+def notifications_feed(request):
+    """
+    Kthen njoftime të REJA pas 'since' (ISO8601).
+    Nëse s’ka 'since', kthen 10 të fundit të palexuara.
+    """
+    since_iso = request.GET.get("since")
+    qs = Notification.objects.filter(user=request.user).order_by("-created_at")
+
+    if since_iso:
+        dt = parse_datetime(since_iso)
+        if dt:
+            qs = qs.filter(created_at__gt=dt)
+        else:
+            qs = qs.none()
+    else:
+        qs = qs.filter(read=False)
+
+    items = [{
+        "id": n.id,
+        "message": n.message,
+        "url": n.url or "",
+        "created_at": n.created_at.isoformat(),
+        "read": n.read,
+    } for n in qs[:10]]
+
+    return JsonResponse({
+        "count": len(items),
+        "items": items,
+        "server_time": now().isoformat(),
+        "csrf_token": get_token(request),
+    })
+
+
+@login_required
+@require_POST
+def notifications_mark_read(request):
+    """
+    Shenjon si të lexuara njoftimet me ids=[...] ose all=true.
+    """
+    ids = request.POST.getlist("ids[]")
+    mark_all = request.POST.get("all") == "true"
+
+    if mark_all:
+        Notification.objects.filter(user=request.user, read=False).update(read=True)
+    elif ids:
+        Notification.objects.filter(user=request.user, id__in=ids).update(read=True)
+
+    return JsonResponse({"ok": True})
+
+
+@receiver(post_save, sender=Lead)
+def notify_new_lead(sender, instance, created, **kwargs):
+    if not created:
+        return
+    admin_user = instance.organisation.user
+    Notification.objects.create(
+        user=admin_user,
+        message=f"New lead: {instance.first_name} {instance.last_name}",
+        url=reverse("leads:lead-detail", kwargs={"pk": instance.pk}),
+    )
+  

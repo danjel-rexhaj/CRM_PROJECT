@@ -7,9 +7,11 @@
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
      <title>ALBOS CRM</title>
      <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+     <link href="{% static 'lead_detail.css' %}" rel="stylesheet">
     <link rel="icon" type="image/png" href="{% static 'images/gjergj_white.png' %}">
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
 </head>
 <body>
          {% include 'navbar.html' %}
@@ -17,7 +19,14 @@
     <div class="pt-32"></div>
 
     <div class="max-w-7xl mx-auto">
-            {% include 'messages.html' %}
+            {% if messages %}
+<div id="flash-messages">
+  {% for message in messages %}
+    <div class="flash-msg {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
             {% block content %}
             {% endblock content %}
     </div>
@@ -36,6 +45,183 @@ document.addEventListener("DOMContentLoaded", function () {
         lengthMenu: [10, 25, 50, 100]
     });
 });
+
+
+
+
+
+(function(){
+  const bell = document.getElementById("notificationBell");
+  const dropdown = document.getElementById("notificationDropdown");
+  const countBadge = document.getElementById("notificationCount");
+  const notifSound = document.getElementById("notifSound");
+
+  if (!bell || !dropdown) return;
+
+  // Helper për CSRF (nëse përdor standardin e Django)
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // Koha e fundit kur kontrolluam (fillojmë 30 sek më parë që të mos humbim gjë)
+  let lastCheck = new Date(Date.now() - 30 * 1000).toISOString();
+
+  // Renderim i shpejtë i items në dropdown
+function renderDropdown(items) {
+  if (!items || !items.length) {
+    dropdown.innerHTML = `
+      <div class="px-4 py-2 text-sm">Nuk ka notifikime</div>
+      <div class="notif-footer">
+        <button id="notifMarkAll" class="btn-ghost">Mark all read</button>
+        <button id="notifClose" class="btn-ghost">Close</button>
+      </div>`;
+    wireDropdownButtons([]);
+    return;
+  }
+
+  dropdown.innerHTML = `
+    <div class="notif-list">
+      ${items.map(i => `
+        <a href="${i.url || '#'}"
+           class="block px-4 py-2 text-sm hover:bg-gray-100 font-bold"
+           data-id="${i.id}">
+          ${i.message.length > 120 ? i.message.slice(0,117) + '…' : i.message}
+        </a>
+      `).join('')}
+    </div>
+    <div class="notif-footer">
+      <button id="notifMarkAll" class="btn-ghost">Mark all read</button>
+      <button id="notifClose" class="btn-ghost">Close</button>
+    </div>`;
+  
+  dropdown.querySelectorAll('a[data-id]').forEach(a=>{
+    a.addEventListener('click', ()=> dropdown.classList.add('hidden'));
+  });
+
+  wireDropdownButtons(items.map(i=>i.id));
+}
+
+
+function wireDropdownButtons(ids){
+  const markBtn = document.getElementById('notifMarkAll');
+  const closeBtn = document.getElementById('notifClose');
+
+  if (markBtn){
+    markBtn.addEventListener('click', () => {
+      fetch(`{% url "leads:notifications-mark-read" %}`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': csrftoken || ''},
+        body: new URLSearchParams({ 'all': 'true' })
+      }).then(() => {
+        updateBadge(0);
+        // boshatis dropdown pas markimit
+        renderDropdown([]);
+      });
+    });
+  }
+  if (closeBtn){
+    closeBtn.addEventListener('click', () => {
+      dropdown.classList.add('hidden');
+    });
+  }
+}
+
+
+  // Përditëso badge-in
+  function updateBadge(n) {
+    if (n > 0) {
+      if (countBadge) {
+        countBadge.textContent = String(n);
+        countBadge.style.display = 'flex';
+      } else {
+        const s = document.createElement('span');
+        s.id = 'notificationCount';
+        s.className = 'absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full';
+        s.textContent = String(n);
+        bell.appendChild(s);
+      }
+    } else if (countBadge) {
+      countBadge.style.display = 'none';
+    }
+  }
+
+    // Polling çdo 12s
+    async function poll() {
+      try {
+        const url = `{% url "leads:notifications-feed" %}?since=${encodeURIComponent(lastCheck)}`;
+        const res = await fetch(url, { credentials: 'same-origin' });
+        const data = await res.json();
+
+        // nëse ka të reja → bip + rifresko dropdown-in + badge
+        if (data.items && data.items.length) {
+          try { notifSound && notifSound.play().catch(()=>{}); } catch(e){}
+
+          // Zëvendëso dropdown-in me të rejat (jo merge)
+          renderDropdown(data.items);
+
+          // Rifresko badge-in me numrin e të rejave
+          updateBadge(data.items.length);
+        }
+
+        if (data.server_time) lastCheck = data.server_time;
+
+      } catch (e) {
+        console.error("Polling error", e);
+      } finally {
+        setTimeout(poll, 12000); // 12 sek
+      }
+    }
+
+
+  poll();
+
+  // Toggle dropdown
+  bell.addEventListener("click", function(e){
+    e.preventDefault();
+    dropdown.classList.toggle("hidden");
+    if (!dropdown.classList.contains("hidden")) {
+      const ids = Array.from(dropdown.querySelectorAll('a[data-id]')).map(a => a.dataset.id);
+      if (ids.length) {
+        fetch(`{% url "leads:notifications-mark-read" %}`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': csrftoken || ''},
+          body: new URLSearchParams(ids.map(id => ['ids[]', id]))
+        }).then(()=> updateBadge(0));
+      } else {
+        updateBadge(0);
+      }
+    }
+  });
+
+
+  // Mbyll dropdown kur klikon jashtë
+  document.addEventListener("click", function(e) {
+    if (!bell.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add("hidden");
+    }
+  });
+
+})();
+
+
+
+
+  (function(){
+    const msgs = document.querySelectorAll('#flash-messages .flash-msg');
+    msgs.forEach((el, i) => {
+      setTimeout(() => {
+        el.classList.add('fade-out');
+        el.addEventListener('transitionend', () => el.remove());
+      }, 3000 + i*120); // zhduke pas 3s (me pak vonesë mes tyre)
+    });
+  })();
+
+
+
+
 </script>
 </body>
 </html>

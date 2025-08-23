@@ -4,7 +4,7 @@ from .views import (
     LeadListView, LeadDetailView, LeadCreateView, LeadUpdateView, LeadDeleteView,
     AssignAgentView, CategoryListView, CategoryDetailView, LeadCategoryUpdateView,
     CategoryCreateView, CategoryUpdateView, CategoryDeleteView, LeadJsonView, 
-    FollowUpCreateView, FollowUpUpdateView, FollowUpDeleteView,  AssignMultipleAgentsView, PublicLeadCreateView,ThankYouView, lead_prev, lead_next
+    FollowUpCreateView, FollowUpUpdateView, FollowUpDeleteView,  AssignMultipleAgentsView, PublicLeadCreateView,ThankYouView, lead_prev, lead_next,notifications_feed, notifications_mark_read
 )
 
 
@@ -32,4 +32,6 @@ urlpatterns = [
     path('thank-you/', ThankYouView.as_view(), name='thank-you'),
     path("<int:pk>/prev/", lead_prev, name="lead-prev"),
     path("<int:pk>/next/", lead_next, name="lead-next"),
+    path("notifications/feed/", notifications_feed, name="notifications-feed"),
+    path("notifications/mark-read/", notifications_mark_read, name="notifications-mark-read"),
 ]
