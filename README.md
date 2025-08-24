@@ -1,33 +1,59 @@
-<p align="center">
-  <p align="center">
-    <a href="https://justdjango.com/?utm_source=github&utm_medium=logo" target="_blank">
-      <img src="https://assets.justdjango.com/static/branding/logo.svg" alt="JustDjango" height="72">
-    </a>
-  </p>
-  <p align="center">
-    The Definitive Django Learning Platform.
-  </p>
-</p>
+# ALBOS CRM
 
-# Getting started with Django
-
-This is the code from the course "Getting Started With Django", found on YouTube and JustDjango
+A lightweight CRM (Customer Relationship Management) system built with **Django**.  
+This project allows organisations to manage leads, agents, categories, and follow-ups, with advanced features such as pagination, filtering, search, notifications, and password reset via email.
 
 ---
 
-## Getting Started
+## 🚀 Features
 
-To run this project you will need to set your environment variables.
+- **User Authentication**
+  - Organisors & Agents with different permissions
+  - Secure login & signup system
 
-1. Create a new file named `.env` inside the `djcrm` folder
-2. Copy all of the variables inside `djcrm/.template.env` and assign your own values to them
-3. Run `export READ_DOT_ENV_FILE=True` inside your terminal so that your environment variables file will be read.
+- **Lead Management**
+  - Create, update, assign, and delete leads
+  - Categories for organizing leads
+  - Assign single or multiple leads to agents
 
-<div align="center">
+- **Search & Filtering**
+  - Search leads by:
+    - ID  
+    - First name  
+    - Last name  
+    - Email  
+    - Phone number  
+  - Filter by agent & category
+  - Sort by date added or first name
 
-<i>Other places you can find us:</i><br>
+- **Pagination**
+  - Dynamic page size (10, 50, 100, 200 per page)
+  - Maintains filters and sorting across pages
 
-<a href="https://www.youtube.com/channel/UCRM1gWNTDx0SHIqUJygD-kQ" target="_blank"><img src="https://img.shields.io/badge/YouTube-%23E4405F.svg?&style=flat-square&logo=youtube&logoColor=white" alt="YouTube"></a>
-<a href="https://www.twitter.com/justdjangocode" target="_blank"><img src="https://img.shields.io/badge/Twitter-%231877F2.svg?&style=flat-square&logo=twitter&logoColor=white" alt="Twitter"></a>
+- **Dashboard**
+  - Total leads
+  - New leads in the last 30 days
+  - Converted leads in the last 30 days
 
-</div>
+- **Notifications**
+  - Real-time notifications for agents when leads are assigned
+  - Admin notifications when new leads are created
+
+- **Password Reset**
+  - Professional HTML email with reset button
+  - Secure token-based reset link
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend**: Django 5
+- **Frontend**: Django Templates + TailwindCSS
+- **Database**: SQLite (default), can be swapped with PostgreSQL/MySQL
+- **Auth**: Django built-in authentication
+- **Email**: Gmail SMTP (can be configured for production)
+
+---
+
+## 📂 Project Structure
+
