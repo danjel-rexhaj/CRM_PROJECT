@@ -23,8 +23,8 @@ if __name__ == '__main__':
     main()
 
 
-
 # Shfaq konfigurimin aktual për kontroll
+
 print("Backend:", settings.EMAIL_BACKEND)
 print("Host:", settings.EMAIL_HOST)
 print("User:", settings.EMAIL_HOST_USER)
