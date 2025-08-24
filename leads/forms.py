@@ -42,11 +42,14 @@ class LeadForm(forms.Form):
 
 
 class CustomUserCreationForm(UserCreationForm):
+    first_name = forms.CharField(required=True, max_length=30)
+    last_name = forms.CharField(required=True, max_length=30)
+    email = forms.EmailField(required=True)
+
     class Meta:
         model = User
-        fields = ("username",)
-        field_classes = {'username': UsernameField}
-
+        fields = ("username", "first_name", "last_name", "email", "password1", "password2")
+        field_classes = {"username": UsernameField}
 
 class AssignAgentForm(forms.Form):
     agent = forms.ModelChoiceField(queryset=Agent.objects.none())

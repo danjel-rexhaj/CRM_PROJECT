@@ -106,8 +106,11 @@
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
                                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Date Added
-                                            <a href="#" id="sort-date" 
-                                                data-sort="{% if request.GET.sort == 'date_asc' %}date_asc{% else %}date_desc{% endif %}">
+                                            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}
+                                            {% if request.GET.agent %}agent={{ request.GET.agent }}&{% endif %}
+                                            {% if request.GET.category %}category={{ request.GET.category }}&{% endif %}
+                                            {% if request.GET.perpage %}perpage={{ request.GET.perpage }}&{% endif %}
+                                            sort={% if request.GET.sort == 'date_asc' %}date_desc{% else %}date_asc{% endif %}">
                                                 {% if request.GET.sort == 'date_asc' %}
                                                     &#9650;
                                                 {% else %}

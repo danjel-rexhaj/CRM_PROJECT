@@ -1,62 +1,39 @@
 import logging
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-from django.contrib import messages
-from .models import Lead, Agent
 import datetime
-from django.utils.timezone import now
-from django.views.decorators.http import require_GET, require_POST
-from django.utils.dateparse import parse_datetime
-from django.middleware.csrf import get_token
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.urls import reverse
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.urls import reverse
-from django.core.paginator import Paginator
-from .models import Notification
-from .models import Lead, Agent, Category
-from django.urls import reverse
-from django.views.decorators.http import require_POST
-from django.views import View
-from django.core.mail import send_mail
-from django.http.response import JsonResponse
-from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
-from django.utils.timezone import now
-from django.views.decorators.http import require_GET, require_POST
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.views.decorators.csrf import csrf_exempt   
-from django.middleware.csrf import get_token
-from django.utils.dateparse import parse_datetime
-from django.views import generic
-from agents.mixins import OrganisorAndLoginRequiredMixin
-from .models import Lead, Agent, Category, FollowUp
+
 from django.contrib import messages
-from django.shortcuts import redirect
-from django.http import HttpResponseForbidden
-from django.shortcuts import redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import generic
-from .models import FollowUp
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from .models import Lead
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.http import HttpResponseForbidden, JsonResponse
+from django.http.response import JsonResponse
+from django.middleware.csrf import get_token
+from django.shortcuts import (
+    render, redirect, get_object_or_404
+)
+from django.urls import reverse
+from django.utils.dateparse import parse_datetime
+from django.utils.timezone import now
+from django.views import generic, View
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
+
+from agents.mixins import OrganisorAndLoginRequiredMixin
 from .forms import (
-    LeadForm, 
-    LeadModelForm, 
-    CustomUserCreationForm, 
-    AssignAgentForm, 
+    LeadForm,
+    LeadModelForm,
+    CustomUserCreationForm,
+    AssignAgentForm,
     LeadCategoryUpdateForm,
     CategoryModelForm,
     FollowUpModelForm
 )
+from .models import Lead, Agent, Category, FollowUp, Notification
 
 
 logger = logging.getLogger(__name__)
@@ -71,6 +48,14 @@ class SignupView(generic.CreateView):
 
     def get_success_url(self):
         return reverse("login")
+
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_organisor = False  # çdo user i ri nuk është organizator
+        user.is_agent = False      # as agent
+        user.save()
+        return super().form_valid(form)
+
 
 
 class LandingPageView(generic.TemplateView):
@@ -126,6 +111,12 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
     context_object_name = "leads"
     paginate_by = 10  # default
 
+    def get_paginate_by(self, queryset):
+        perpage = self.request.GET.get("perpage")
+        if perpage and perpage.isdigit():
+            return int(perpage)
+        return self.paginate_by
+
     def get_queryset(self):
         user = self.request.user
         if user.is_organisor:
@@ -133,11 +124,14 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
                 organisation=user.userprofile,
                 agent__isnull=False
             )
-        else:
+        elif hasattr(user, "agent"):  # kontrollojmë nëse ka agent
             queryset = Lead.objects.filter(
                 organisation=user.agent.organisation,
                 agent__isnull=False
             ).filter(agent__user=user)
+        else:
+            # user i thjeshtë pa rol → mos kthej asnjë lead
+            return Lead.objects.none()
 
         # --- Filtrimet ---
         q = self.request.GET.get("q")
@@ -147,13 +141,15 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         if q:
             queryset = queryset.filter(
                 Q(first_name__icontains=q) |
-                Q(last_name__icontains=q)
+                Q(last_name__icontains=q) |
+                Q(id__iexact=q) |
+                Q(phone_number__icontains=q) |
+                Q(email__icontains=q)
             )
         if agent:
             queryset = queryset.filter(agent__id=agent)
         if category:
             queryset = queryset.filter(category__id=category)
-             # --- Filtrimet ---
 
         sort = self.request.GET.get("sort")
         if sort == "date_asc":
@@ -166,12 +162,6 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
             queryset = queryset.order_by("-first_name")
 
         return queryset
-
-    def get_paginate_by(self, queryset):
-        perpage = self.request.GET.get("perpage")
-        if perpage and perpage.isdigit():
-            return int(perpage)
-        return self.paginate_by  # default 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -189,13 +179,17 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
             context["categories"] = Category.objects.filter(
                 organisation=user.userprofile
             )
-        else:
+        elif hasattr(user, "agent"):
             context["agents"] = Agent.objects.filter(
                 organisation=user.agent.organisation
             )
             context["categories"] = Category.objects.filter(
                 organisation=user.agent.organisation
             )
+        else:
+            # user i ri, pa rol → mos e lejo të shohë agjentë/kategori
+            context["agents"] = Agent.objects.none()
+            context["categories"] = Category.objects.none()
 
         context["unread_notifications"] = user.notifications.filter(read=False)
         context["unread_count"] = context["unread_notifications"].count()
@@ -837,3 +831,12 @@ def notify_new_lead(sender, instance, created, **kwargs):
         url=reverse("leads:lead-detail", kwargs={"pk": instance.pk}),
     )
   
+
+
+
+@login_required
+def welcome_new_user(request):
+    user = request.user
+    if user.is_organisor or hasattr(user, "agent"):
+        return redirect("dashboard")  # ose tek leads
+    return render(request, "registration/welcome.html")

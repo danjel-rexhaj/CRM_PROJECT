@@ -141,7 +141,7 @@ CRISPY_TEMPLATE_PACK = 'tailwind'
 
 # --- EMAIL (SMTP) ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-from django.conf import settings
+
 EMAIL_HOST = env("EMAIL_HOST")
 EMAIL_PORT = env.int("EMAIL_PORT", 587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", True)

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-lg mx-auto text-center mt-10">
+    <h1 class="text-2xl font-bold">Welcome to EagleDrop CRM 🎉</h1>
+    <p class="mt-4 text-gray-600">
+        Llogaria juaj është krijuar me sukses.<br>
+        Ju lutem prisni derisa një administrator t'iu caktojë si agjent ose organizator.
+    </p>
+    <p class="mt-6">
+        <a href="{% url 'logout' %}" class="text-blue-500 hover:underline">Log out</a>
+    </p>
+</div>
+{% endblock %}
