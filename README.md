@@ -53,7 +53,3 @@ This project allows organisations to manage leads, agents, categories, and follo
 - **Auth**: Django built-in authentication
 - **Email**: Gmail SMTP (can be configured for production)
 
----
-
-## 📂 Project Structure
-
