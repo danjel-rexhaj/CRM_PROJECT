@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% load tailwind_filters %}
-
+{% load static %}
 {% block content %}
+<link href="{% static 'lead_detail.css' %}" rel="stylesheet">
 
-<div class="max-w-lg mx-auto">
-
+<div class="login_page max-w-lg mx-auto">
+    <h1>Login</h1>
     <div class="py-5 border-b border-gray-200">
         <a class="hover:text-blue-500" href="{% url 'signup' %}">Don't have an account?</a>
     </div>

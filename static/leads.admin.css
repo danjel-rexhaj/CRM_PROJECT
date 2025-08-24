@@ -346,3 +346,28 @@ body.dark .pagination a.bg-blue-500.text-white.border-blue-500 {
   margin-bottom: 30px;
   margin-top: 10px;
 }
+
+.password_reset_Confirm {
+  margin-top: 100px;
+}
+
+.password_reset_Confirm h1{
+  margin-bottom: 40px;
+}
+
+.password_reset_Confirm button{
+  margin-top: 20px;
+}
+
+.signup_page h1{
+   font-size: 60px;
+  text-align: center;
+  font-weight: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-bottom: 10px;
+
+}
+
+.signup_page {
+    margin-top: 100px;
+}

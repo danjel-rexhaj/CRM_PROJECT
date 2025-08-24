@@ -125,8 +125,14 @@
                                     <tbody>
                                         {% for lead in leads %}
                                             <tr class="bg-white">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    <input type="checkbox" name="lead_ids" value="{{ lead.pk }}" class="lead-checkbox">
+                                                <td class="select-text px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer clickable-td text-center clickable-cell">
+                                                    <div class="flex items-center justify-center">
+                                                        <input type="checkbox" 
+                                                               name="lead_ids" 
+                                                               value="{{ lead.pk }}" 
+                                                               class="lead-checkbox w-6 h-6 cursor-pointer">
+                                                        </div>
+                                                    </td>
                                                 </td>
                                                 <td class="font-mono">
                                                     {{ lead.id }}
@@ -234,6 +240,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+document.querySelectorAll(".clickable-td").forEach(td => {
+  td.addEventListener("click", function(e){
+    if (e.target.tagName !== "INPUT") {
+      let cb = this.querySelector("input[type=checkbox]");
+      cb.checked = !cb.checked;
+    }
+  });
+});
 
 
 

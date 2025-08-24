@@ -853,3 +853,24 @@ body.dark #notificationDropdown .btn-ghost:hover{ background:#1e40af; color:#fff
   border-color: #3b82f6; /* blu e bukur */
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
+
+
+
+.Update_note{
+  margin-top: 100px;
+}
+
+
+
+.login_page{
+  margin-top: 100px;
+}
+
+.login_page h1{
+  font-size: 60px;
+  text-align: center;
+  font-weight: 500;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-bottom: 10px;
+
+}

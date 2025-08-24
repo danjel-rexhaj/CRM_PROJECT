@@ -138,27 +138,36 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         category = self.request.GET.get("category")
 
         if q:
-            queryset = queryset.filter(
-                Q(first_name__icontains=q) |
-                Q(last_name__icontains=q) |
-                Q(id__iexact=q) |
-                Q(phone_number__icontains=q) |
-                Q(email__icontains=q)
-            )
+            if q.isdigit():
+                queryset = queryset.filter(
+                     Q(id=int(q)) |               # vetëm ID exakte
+            Q(phone_number=q)            # vetëm numri exakte
+                )
+            else:
+                queryset = queryset.filter(
+                    Q(first_name__icontains=q) |
+                    Q(last_name__icontains=q) |
+                    Q(email__icontains=q)
+                )
+
         if agent:
             queryset = queryset.filter(agent__id=agent)
         if category:
             queryset = queryset.filter(category__id=category)
 
+        # --- Renditja ---
         sort = self.request.GET.get("sort")
         if sort == "date_asc":
-            queryset = queryset.order_by("date_added")
+            queryset = queryset.order_by("date_added")   # më i vjetri në fillim
         elif sort == "date_desc":
-            queryset = queryset.order_by("-date_added")
+            queryset = queryset.order_by("-date_added")  # më i riu në fillim
         elif sort == "first_asc":
             queryset = queryset.order_by("first_name")
         elif sort == "first_desc":
             queryset = queryset.order_by("-first_name")
+        else:
+            # DEFAULT → më të rinjtë në fillim
+            queryset = queryset.order_by("-date_added")
 
         return queryset
 
@@ -687,11 +696,13 @@ class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
     
 User = get_user_model()
 
-class PublicLeadCreateView(generic.ListView):
+from django.views import View
+
+class PublicLeadCreateView(View):
     template_name = "leads/public_lead_form.html"
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name)
+        return render(request, self.template_name, {})  # gjithmonë jep context
 
     def post(self, request, *args, **kwargs):
         first_name = request.POST.get("first_name")
@@ -700,28 +711,23 @@ class PublicLeadCreateView(generic.ListView):
         phone_number = request.POST.get("phone_number")
         age = request.POST.get("age")
         service = request.POST.get("service")
-        source = request.POST.get("source")  # mund ta shtosh në form-in tënd
 
         if not (first_name and last_name and email):
             messages.error(request, "Plotëso të gjitha fushat e kërkuara.")
-            return render(request, self.template_name)
+            return render(request, self.template_name, {})
 
-        # Marrim user admin
+        # gjej user admin
         admin_user = User.objects.get(username="admin")
         organisation = admin_user.userprofile
 
-        # Marrim agentin që lidhet me admin_user
-        try:
-            agent = Agent.objects.get(user=admin_user)
-        except Agent.DoesNotExist:
-            agent = Agent.objects.create(user=admin_user, organisation=organisation)
+        # gjej ose krijo agent
+        agent, _ = Agent.objects.get_or_create(user=admin_user, organisation=organisation)
 
-        try:
-            new_category = Category.objects.get(name="NEW", organisation=organisation)
-        except Category.DoesNotExist:
-            new_category = Category.objects.create(name="New", organisation=organisation)
+        # gjej ose krijo kategori NEW
+        new_category, _ = Category.objects.get_or_create(
+            name="New", organisation=organisation
+        )
 
-        # Krijojmë lead
         Lead.objects.create(
             first_name=first_name,
             last_name=last_name,
@@ -730,25 +736,10 @@ class PublicLeadCreateView(generic.ListView):
             age=age,
             organisation=organisation,
             agent=agent,
-            category=new_category
+            category=new_category,
         )
 
-        # Krijojmë notifikim për admin  <-- E KOMENTUAR SE E BËN SIGNAL-I
-        # Notification.objects.create(
-        #     user=admin_user,
-        #     message=f"Lead i ri: {first_name} {last_name} ({email})",
-        #     url="/admin/leads/lead/"
-        # )
-
-        # Nëse është nga reklama  <-- E KOMENTUAR SE E BËN SIGNAL-I
-        # if source == "advertisement":
-        #     Notification.objects.create(
-        #         user=admin_user,
-        #         message=f"Lead nga reklama: {first_name} {last_name}",
-        #         url="/admin/leads/lead/"
-        #     )
-
-        messages.success(request, "New lead just came !")
+        messages.success(request, "New lead just came!")
         return redirect("leads:thank-you")
 
 

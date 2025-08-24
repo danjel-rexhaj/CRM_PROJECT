@@ -12,6 +12,8 @@
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
+    <audio id="notification-sound" src="{% static 'sounds/new-lead.mp3' %}" preload="auto"></audio>
+
 </head>
 <body>
          {% include 'navbar.html' %}
@@ -219,8 +221,21 @@ function wireDropdownButtons(ids){
     });
   })();
 
+async function checkNotifications() {
+    try {
+        const response = await fetch("{% url 'leads:notifications-feed' %}");
+        const data = await response.json();
 
-
+        if (data.count > 0) {
+            console.log("Notifications:", data.items);
+            const audio = document.getElementById("notification-sound");
+            audio.play().catch(err => console.log("Autoplay blocked:", err));
+        }
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+    }
+}
+setInterval(checkNotifications, 10000);
 
 </script>
 </body>

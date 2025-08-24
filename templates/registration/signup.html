@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% load tailwind_filters %}
-
+{% load static %}
 {% block content %}
-
-<div class="max-w-lg mx-auto">
+<link rel="stylesheet" href="{% static 'leads.admin.css' %}" />
+<div class="signup_page max-w-lg mx-auto">
+    <h1>Create an Account</h1>
     <form method="post" class="mt-5">
         {% csrf_token %}
         {{ form|crispy }}
