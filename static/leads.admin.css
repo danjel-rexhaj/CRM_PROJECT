@@ -371,3 +371,97 @@ body.dark .pagination a.bg-blue-500.text-white.border-blue-500 {
 .signup_page {
     margin-top: 100px;
 }
+
+.dashboard{
+  margin-top: 200px;
+}
+
+.dashboard-container {
+    background: linear-gradient(135deg, #000000b9, #ffffff00);
+    border-radius: 16px;
+    padding: 100px 50px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+/* Titulli kryesor */
+.dashboard-title {
+    font-size: 50px; /* më i madh */
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 80px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+}
+
+.dashboard-title::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: #3b82f6;
+    margin: 12px auto 0;
+    border-radius: 2px;
+}
+
+/* Kartat */
+.dashboard-card {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.07);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
+    width: 200px;
+    height: 150px;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+/* Numrat */
+.dashboard-card h2 {
+    font-size: 2.5rem;
+    color: #111827;
+    margin-bottom: 20px;
+}
+
+/* Teksti poshtë */
+.dashboard-card p {
+    font-size: 1rem;
+    color: #64748b;
+    margin-top: 8px;
+    font-weight: 500;
+}
+
+/* Dark mode për container */
+body.dark .dashboard-container {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+/* Dark mode për titullin */
+body.dark .dashboard-title {
+    color: #f1f5f9;
+}
+
+body.dark .dashboard-title::after {
+    background: #3b82f6; /* mbetet blu për kontrast */
+}
+
+/* Dark mode për kartat */
+body.dark .dashboard-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+}
+
+body.dark .dashboard-card h2 {
+    color: #f8fafc;
+}
+
+body.dark .dashboard-card p {
+    color: #cbd5e1;
+}
