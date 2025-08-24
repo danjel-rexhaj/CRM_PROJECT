@@ -46,41 +46,34 @@ class AgentListView(OrganisorAndLoginRequiredMixin, generic.ListView):
         return Agent.objects.filter(organisation=organisation)
 
 
-class AgentCreateView(OrganisorAndLoginRequiredMixin, generic.CreateView):
+class AgentCreateView(OrganisorAndLoginRequiredMixin, generic.View):
     template_name = "agents/agent_create.html"
-    form_class = AgentModelForm  # kjo është ModelForm për User, jo për Agent
+    form_class = AgentModelForm
 
-    def get_success_url(self):
-        return reverse("agents:agent-list")
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {"form": form})
 
-    def form_valid(self, form):
-        # KRIJO USER-in (forma kujdeset për set_password në save() nëse password1 u plotësua)
-        user = form.save(commit=False)
-        user.is_agent = True
-        user.is_organisor = False
-        # Mos përdor më form.cleaned_data["password"]
-        # Nëse do të detyrosh që password1 të jetë i detyrueshëm në create,
-        # kontrolloje këtu: 
-        # if not form.cleaned_data.get("password1"): ...
-        user.save()
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            # krijo user-in
+            user = form.save(commit=False)
+            user.is_agent = True
+            user.is_organisor = False
+            user.save()
 
-        # KRIJO AGJENTIN e lidhur me organizatën e adminit aktual
-        Agent.objects.create(
-            user=user,
-            organisation=self.request.user.userprofile
-        )
+            # lidhe me organizatën e adminit
+            Agent.objects.create(
+                user=user,
+                organisation=request.user.userprofile
+            )
 
-        send_mail(
-            subject="You are invited to be an agent",
-            message="You were added as an agent on DJCRM. Please come login to start working.",
-            from_email="admin@test.com",
-            recipient_list=[user.email]
-        )
-
-        messages.success(self.request, "Agjenti u krijua me sukses.")
-        # Mos thirr super().form_valid(form) (sepse ajo pranon që forma menaxhon objektin e view modelit),
-        # ne po e menaxhojmë vetë krijimin e User + Agent. Thjesht kthe një redirect:
-        return redirect(self.get_success_url())
+            messages.success(request, "Agjenti u krijua me sukses ✅")
+            return redirect("agents:agent-list")
+    
+        # nëse forma nuk është valide → kthe gabimet
+        return render(request, self.template_name, {"form": form})
 
 
 class AgentDetailView(OrganisorAndLoginRequiredMixin, generic.DetailView):

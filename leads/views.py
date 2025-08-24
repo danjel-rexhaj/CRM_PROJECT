@@ -130,7 +130,6 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
                 agent__isnull=False
             ).filter(agent__user=user)
         else:
-            # user i thjeshtë pa rol → mos kthej asnjë lead
             return Lead.objects.none()
 
         # --- Filtrimet ---
@@ -168,11 +167,10 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         user = self.request.user
 
         if user.is_organisor:
-            unassigned = Lead.objects.filter(
+            context["unassigned_leads"] = Lead.objects.filter(
                 organisation=user.userprofile,
                 agent__isnull=True
             )
-            context["unassigned_leads"] = unassigned
             context["agents"] = Agent.objects.filter(
                 organisation=user.userprofile
             )
@@ -187,13 +185,23 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
                 organisation=user.agent.organisation
             )
         else:
-            # user i ri, pa rol → mos e lejo të shohë agjentë/kategori
             context["agents"] = Agent.objects.none()
             context["categories"] = Category.objects.none()
 
         context["unread_notifications"] = user.notifications.filter(read=False)
         context["unread_count"] = context["unread_notifications"].count()
+
+        # Ruaj id-të sipas filtrave, sort-it dhe faqes aktuale
+        queryset = self.get_queryset()
+        lead_ids = list(queryset.values_list("id", flat=True))
+        self.request.session["visible_leads"] = lead_ids
+
+        # Ruaj querystring që të rikthehesh me back button
+        self.request.session["last_leads_query"] = self.request.GET.urlencode()
+
         return context
+
+
 
 
 
@@ -463,6 +471,7 @@ class CategoryDeleteView(OrganisorAndLoginRequiredMixin, generic.DeleteView):
             )
         return queryset
 
+from django.contrib import messages
 
 class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
     template_name = "leads/lead_category_update.html"
@@ -470,12 +479,10 @@ class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     def get_queryset(self):
         user = self.request.user
-        # initial queryset of leads for the entire organisation
         if user.is_organisor:
             queryset = Lead.objects.filter(organisation=user.userprofile)
         else:
             queryset = Lead.objects.filter(organisation=user.agent.organisation)
-            # filter for the agent that is logged in
             queryset = queryset.filter(agent__user=user)
         return queryset
 
@@ -487,12 +494,11 @@ class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
         instance = form.save(commit=False)
         converted_category = Category.objects.get(name="Converted")
         if form.cleaned_data["category"] == converted_category:
-            # update the date at which this lead was converted
             if lead_before_update.category != converted_category:
-                # this lead has now been converted
                 instance.converted_date = datetime.datetime.now()
         instance.save()
-        return super(LeadCategoryUpdateView, self).form_valid(form)
+        messages.success(self.request, "✅ Statusi i lead-it u ndryshua me sukses!")
+        return super().form_valid(form)
 
 
 class FollowUpCreateView(LoginRequiredMixin, generic.CreateView):
@@ -503,7 +509,7 @@ class FollowUpCreateView(LoginRequiredMixin, generic.CreateView):
         return reverse("leads:lead-detail", kwargs={"pk": self.kwargs["pk"]})
 
     def get_context_data(self, **kwargs):
-        context = super(FollowUpCreateView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context.update({
             "lead": Lead.objects.get(pk=self.kwargs["pk"])
         })
@@ -515,7 +521,8 @@ class FollowUpCreateView(LoginRequiredMixin, generic.CreateView):
         followup.lead = lead
         followup.agent = self.request.user
         followup.save()
-        return super(FollowUpCreateView, self).form_valid(form)
+        messages.success(self.request, "📝 Shënimi u shtua me sukses!")
+        return super().form_valid(form)
 
 
 class FollowUpUpdateView(LoginRequiredMixin, generic.UpdateView):
@@ -524,17 +531,19 @@ class FollowUpUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     def get_queryset(self):
         user = self.request.user
-        # initial queryset of leads for the entire organisation
         if user.is_organisor:
             queryset = FollowUp.objects.filter(lead__organisation=user.userprofile)
         else:
             queryset = FollowUp.objects.filter(lead__organisation=user.agent.organisation)
-            # filter for the agent that is logged in
             queryset = queryset.filter(lead__agent__user=user)
         return queryset
 
     def get_success_url(self):
         return reverse("leads:lead-detail", kwargs={"pk": self.get_object().lead.id})
+
+    def form_valid(self, form):
+        messages.success(self.request, "✏️ Shënimi u përditësua me sukses!")
+        return super().form_valid(form)
 
 
 class FollowUpDeleteView(LoginRequiredMixin, generic.DeleteView):
@@ -555,10 +564,9 @@ class FollowUpDeleteView(LoginRequiredMixin, generic.DeleteView):
             if self.object.agent != request.user:
                 return HttpResponseForbidden("You cannot delete this comment.")
 
-        # Fshin objektin dhe redirect
         self.object.delete()
+        messages.success(request, "🗑️ Shënimi u fshi me sukses!")
         return redirect("leads:lead-detail", pk=lead_pk)
-
 
 
 # def lead_update(request, pk):
@@ -749,24 +757,37 @@ class ThankYouView(generic.TemplateView):
     
 
 
-def lead_prev(request, pk):
-    current_lead = get_object_or_404(Lead, pk=pk)
-    prev_lead = Lead.objects.filter(id__lt=current_lead.id).order_by('-id').first()
-    if prev_lead:
-        return redirect('leads:lead-detail', pk=prev_lead.id)
-    # nëse nuk ka më të mëparshëm → shkon tek i fundit
-    last_lead = Lead.objects.order_by('-id').first()
-    return redirect('leads:lead-detail', pk=last_lead.id)
-
-
+@login_required
 def lead_next(request, pk):
-    current_lead = get_object_or_404(Lead, pk=pk)
-    next_lead = Lead.objects.filter(id__gt=current_lead.id).order_by('id').first()
-    if next_lead:
-        return redirect('leads:lead-detail', pk=next_lead.id)
-    # nëse nuk ka më të ardhshëm → shkon tek i pari
-    first_lead = Lead.objects.order_by('id').first()
-    return redirect('leads:lead-detail', pk=first_lead.id)
+    lead_ids = request.session.get("visible_leads", [])
+    pk = int(pk)
+    if pk not in lead_ids:
+        return redirect("leads:lead-list")
+
+    current_index = lead_ids.index(pk)
+    if current_index + 1 < len(lead_ids):
+        next_id = lead_ids[current_index + 1]
+    else:
+        next_id = lead_ids[0]  # rikthehet tek i pari nëse s’ka më
+    return redirect("leads:lead-detail", pk=next_id)
+
+
+@login_required
+def lead_prev(request, pk):
+    lead_ids = request.session.get("visible_leads", [])
+    pk = int(pk)
+    if pk not in lead_ids:
+        return redirect("leads:lead-list")
+
+    current_index = lead_ids.index(pk)
+    if current_index - 1 >= 0:
+        prev_id = lead_ids[current_index - 1]
+    else:
+        prev_id = lead_ids[-1]  # shkon tek i fundit nëse është tek i pari
+    return redirect("leads:lead-detail", pk=prev_id)
+
+
+
 
 @login_required
 @require_GET

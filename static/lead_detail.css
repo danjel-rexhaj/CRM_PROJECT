@@ -835,3 +835,21 @@ body.dark #notificationDropdown .btn-ghost:hover{ background:#1e40af; color:#fff
 .select-text {
   cursor: pointer;
 }
+
+/* Stilizimi i select-it për Status */
+.select-status {
+  width: 100%;
+  padding: 8px 8px;
+  border: 1px solid #d1d5db; /* gri e lehtë */
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+  color: #111827; /* text i errët */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.select-status:focus {
+  outline: none;
+  border-color: #3b82f6; /* blu e bukur */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
