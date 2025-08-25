@@ -793,11 +793,12 @@ def notifications_feed(request):
     if since_iso:
         dt = parse_datetime(since_iso)
         if dt:
-            qs = qs.filter(created_at__gt=dt)
+            qs = qs.filter(created_at__gt=dt, read=False)
         else:
             qs = qs.none()
     else:
         qs = qs.filter(read=False)
+
 
     items = [{
         "id": n.id,
@@ -807,11 +808,12 @@ def notifications_feed(request):
         "read": n.read,
     } for n in qs[:10]]
 
+    unread_count = Notification.objects.filter(user=request.user, read=False).count()
+
     return JsonResponse({
-        "count": len(items),
         "items": items,
+        "unread_count": unread_count,
         "server_time": now().isoformat(),
-        "csrf_token": get_token(request),
     })
 
 
@@ -829,7 +831,9 @@ def notifications_mark_read(request):
     elif ids:
         Notification.objects.filter(user=request.user, id__in=ids).update(read=True)
 
-    return JsonResponse({"ok": True})
+    unread_count = Notification.objects.filter(user=request.user, read=False).count()
+
+    return JsonResponse({"ok": True, "unread_count": unread_count})
 
 
 @receiver(post_save, sender=Lead)

@@ -192,7 +192,9 @@ document.addEventListener("DOMContentLoaded", function() {
       method: 'POST',
       headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': csrftoken || ''},
       body: new URLSearchParams(ids.map(id => ['ids[]', id]))
-    }).then(() => updateBadge(0));
+    })
+    .then(r => r.json())
+    .then(data => updateBadge(data.unread_count));
   }
 
   // --- Mark all read (butoni) ---
@@ -201,9 +203,12 @@ document.addEventListener("DOMContentLoaded", function() {
       method: 'POST',
       headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': csrftoken || ''},
       body: 'all=true'
-    }).then(() => {
-      updateBadge(0);
-      renderList([]);       // boshatis vetëm listën; footer-i mbetet → Close punon
+    })
+    .then(r => r.json())
+    .then(data => {
+      updateBadge(data.unread_count);
+      renderList([]);
+      dropdown.classList.add('hidden');
     });
   }
 
@@ -242,23 +247,32 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // --- Polling ---
-  let lastCheck = new Date(Date.now() - 30 * 1000).toISOString();
-  async function poll(){
-    try{
-      const res  = await fetch(`{% url "leads:notifications-feed" %}?since=${encodeURIComponent(lastCheck)}`, { credentials: 'same-origin' });
-      const data = await res.json();
-      if (data.items && data.items.length){
-        try { notifSound && notifSound.play().catch(()=>{}); } catch(_){}
-        renderList(data.items);
-        updateBadge(data.items.length);
+ async function poll(){
+  try {
+    const res = await fetch(`{% url "leads:notifications-feed" %}?since=${encodeURIComponent(lastCheck)}`, { credentials: 'same-origin' });
+    const data = await res.json();
+
+    // vetëm nëse ka unread të reja → bip dhe rifresko dropdown
+    if (data.items && data.items.length) {
+      if (data.unread_count > 0) {
+        notifSound && notifSound.play().catch(()=>{});
       }
-      if (data.server_time) lastCheck = data.server_time;
-    } catch(_) {
-      // optional: console.error(_)
-    } finally {
-      setTimeout(poll, 12000);
+      renderList(data.items); // tani renderon vetëm unread të reja
     }
+
+
+    if (typeof data.unread_count !== "undefined") {
+      updateBadge(data.unread_count);
+    }
+    if (data.server_time) lastCheck = data.server_time;
+
+  } catch(e) {
+    console.error("poll error", e);
+  } finally {
+    setTimeout(poll, 12000);
   }
+}
+
   poll();
 })();
 </script>
