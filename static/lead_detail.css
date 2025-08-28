@@ -665,6 +665,19 @@ body.dark .lead-name {
   }
 
 
+
+.form-group select {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 15px;
+  background-color: #fff;
+  color: #111;
+  cursor: pointer;
+}
+
+
+
   /* Login button - në dark mode */
 body.dark a[href*="login"] {
   background-color: #374151;   /* ngjyra gri e errët si butonat në dark mode */

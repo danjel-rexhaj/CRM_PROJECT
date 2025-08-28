@@ -194,3 +194,11 @@ TAILWIND_APP_NAME = 'theme'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+]
+
+
+# Orari i lejuar i login-it për agjentët
+ALLOWED_LOGIN_START = "09:00"   # ora 09:00
+ALLOWED_LOGIN_END = "22:00"     # ora 22:20

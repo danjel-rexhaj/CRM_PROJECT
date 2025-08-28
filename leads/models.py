@@ -102,3 +102,14 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message}"
+    
+
+class AgentLoginLog(models.Model):
+    agent = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    outside_allowed_hours = models.BooleanField(default=False)  # 🔹 shto këtë
+
+    def __str__(self):
+        return f"{self.agent.username} - {self.timestamp}"

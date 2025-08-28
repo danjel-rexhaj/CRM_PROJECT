@@ -21,7 +21,12 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import now
 from django.views import generic, View
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST 
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
+
 
 from agents.mixins import OrganisorAndLoginRequiredMixin
 from .forms import (
@@ -368,8 +373,23 @@ class AssignAgentView(OrganisorAndLoginRequiredMixin, generic.FormView):
         agent = form.cleaned_data["agent"]
         lead = Lead.objects.get(id=self.kwargs["pk"])
         lead.agent = agent
+
+        send_as_new = self.request.POST.get("send_as_new") == "1"
+
+        if send_as_new:
+            try:
+                new_category = Category.objects.get(
+                    organisation=lead.organisation, name="New"
+                )
+                lead.category = new_category
+            except Category.DoesNotExist:
+                pass
+
+            lead.followups.all().delete()
+
         lead.save()
-        return super(AssignAgentView, self).form_valid(form)
+        return super().form_valid(form)
+
 
 
 class CategoryListView(LoginRequiredMixin, generic.ListView):
@@ -661,6 +681,7 @@ class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
         user = request.user
         lead_ids = request.POST.getlist('lead_ids')
         agent_id = request.POST.get('agent_id')
+        send_as_new = request.POST.get('send_as_new') == "1"  # kontrollo checkbox-in
 
         if not lead_ids:
             messages.error(request, "Zgjidh së paku një lead.")
@@ -677,7 +698,25 @@ class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
             return redirect('leads:lead-list')
 
         leads = Lead.objects.filter(id__in=lead_ids, organisation=user.userprofile)
-        updated_count = leads.update(agent=agent)
+        updated_count = 0
+
+        for lead in leads:
+            lead.agent = agent
+
+            if send_as_new:
+                # Reset statusi dhe fshi komentet
+                try:
+                    new_category = Category.objects.get(
+                        organisation=lead.organisation, name="New"
+                    )
+                    lead.category = new_category
+                except Category.DoesNotExist:
+                    pass
+
+                lead.followups.all().delete()
+
+            lead.save()
+            updated_count += 1
 
         if updated_count > 0 and agent.user:
             sample_names = list(leads.values_list("first_name", flat=True)[:3])
@@ -856,3 +895,94 @@ def welcome_new_user(request):
     if user.is_organisor or hasattr(user, "agent"):
         return redirect("dashboard")  # ose tek leads
     return render(request, "registration/welcome.html")
+
+
+
+
+@csrf_exempt  # lejon POST nga jashtë (Amazon) pa CSRF
+@require_POST
+def amazon_webhook(request):
+    import json
+    try:
+        data = json.loads(request.body)
+
+        # merr user admin / organizatën
+        admin_user = User.objects.get(username="admin")
+        organisation = admin_user.userprofile
+        agent, _ = Agent.objects.get_or_create(user=admin_user, organisation=organisation)
+
+        # gjej ose krijo kategorinë "New"
+        new_category, _ = Category.objects.get_or_create(
+            name="New", organisation=organisation
+        )
+
+        lead = Lead.objects.create(
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
+            email=data.get("email", ""),
+            phone_number=data.get("phone", ""),
+            organisation=organisation,
+            agent=agent,
+            category=new_category,
+        )
+
+        return JsonResponse({"ok": True, "lead_id": lead.id})
+    except Exception as e:
+        logger.error(f"Amazon webhook error: {e}")
+        return JsonResponse({"ok": False, "error": str(e)}, status=400)
+
+
+from datetime import datetime
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
+from django.utils.timezone import localtime
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import AgentLoginLog
+
+@receiver(user_logged_in)
+def notify_agent_login(sender, request, user, **kwargs):
+    # vetëm për agjentët
+    if hasattr(user, "agent") and user.is_agent:
+        login_time = localtime().strftime("%Y-%m-%d %H:%M:%S")
+
+        # gjej IP reale edhe nëse përdor ngrok ose proxy
+        ip = request.META.get("HTTP_X_FORWARDED_FOR")
+        if ip:
+            ip = ip.split(",")[0]  # merr IP-n e parë (klienti real)
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+
+        ua = request.META.get("HTTP_USER_AGENT", "")
+
+        # 🔹 Orari i lejuar (nga settings.py)
+        allowed_start = datetime.strptime(settings.ALLOWED_LOGIN_START, "%H:%M").time()
+        allowed_end = datetime.strptime(settings.ALLOWED_LOGIN_END, "%H:%M").time()
+        now_time = localtime().time()
+
+        is_outside = not (allowed_start <= now_time <= allowed_end)
+
+        # 🔹 Ruaje logimin në DB (me flag nëse është jashtë orarit)
+        AgentLoginLog.objects.create(
+            agent=user,
+            ip_address=ip,
+            user_agent=ua,
+            outside_allowed_hours=is_outside,  # kjo fushë duhet të ekzistojë në model
+        )
+
+        # 🔹 Nëse është jashtë orarit → dërgo email vetëm tek admini
+        if is_outside:
+            admin_email = getattr(settings, "DEFAULT_FROM_EMAIL", "support@albos-crm.com")
+
+            send_mail(
+                subject="⏰ Loguar jashtë orarit",
+                message=(
+                    f"Agjenti {user.get_full_name()} ({user.email}) "
+                    f"u logua në {login_time}.\n\n"
+                    f"IP: {ip}\n"
+                    f"Browser: {ua}"
+                ),
+                from_email=admin_email,
+                recipient_list=[admin_email],
+                fail_silently=False,
+            )

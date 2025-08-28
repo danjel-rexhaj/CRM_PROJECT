@@ -24,3 +24,14 @@ admin.site.register(UserProfile)
 admin.site.register(Lead, LeadAdmin)
 admin.site.register(Agent)
 admin.site.register(FollowUp)
+
+
+
+from django.contrib import admin
+from .models import AgentLoginLog
+
+@admin.register(AgentLoginLog)
+class AgentLoginLogAdmin(admin.ModelAdmin):
+    list_display = ("agent", "timestamp", "ip_address", "user_agent")
+    search_fields = ("agent__username", "ip_address", "user_agent")
+    list_filter = ("timestamp",)
