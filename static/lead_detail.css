@@ -285,7 +285,7 @@ body.dark .overview-block,
 body.dark .followup-block,
 body.dark table,
 body.dark th,
-body.dark td {
+body.dark tr {
     background: #1e293b;   /* blu e errët elegante */
     color: #e2e8f0;        /* tekst gri e qartë */
     border-color: #334155; /* kufi më i butë */
@@ -307,14 +307,14 @@ body.dark label {
 /* ================= Dark Mode Extra ================= */
 
 /* Filtrimi, dropdowns, inputet dhe butonat */
-body.dark input,
-body.dark select,
-body.dark button {
-    background: #1e293b;   /* blu e errët */
-    color: #e2e8f0;        /* tekst gri e hapur */
+body.dark .overview-input,
+body.dark .select-status,
+body.dark .filter-form input,
+body.dark .filter-form select,
+body.dark .assign-form select {
+    background: #1e293b;
+    color: #e2e8f0;
     border: 1px solid #334155;
-    border-radius: 6px;
-    transition: background 0.2s ease, color 0.2s ease;
 }
 
 body.dark input:focus,
@@ -886,4 +886,17 @@ body.dark #notificationDropdown .btn-ghost:hover{ background:#1e40af; color:#fff
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin-bottom: 10px;
 
+}
+
+
+/* Teksti i shkurtuar (si koment preview) */
+.ts-compact {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Normal kur hapet dropdown */
+.ts-wrapper.dropdown-active .ts-control .ts-compact {
+  white-space: normal;
 }

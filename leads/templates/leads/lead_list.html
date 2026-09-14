@@ -1,78 +1,129 @@
 {% extends "base.html" %}
-
-{% block content %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>My Leads Page</title>
+{% block content %}
+<link rel="stylesheet" href="{% static 'leads.admin.css' %}" />
+<link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
 
-    <!-- Lidh CSS -->
-    <link rel="stylesheet" href="{% static 'leads.admin.css' %}" />
-</head>
 <section class="text-gray-700 body-font">
     <div class="w-full px-5 py-12 mx-auto flex flex-wrap">
+
+        <!-- Header -->
         <div class="w-full mb-6 py-6 flex justify-between items-center border-b border-gray-200">
             <div>
                 <h2 class="leads_text">Leads</h2>
                 {% if request.user.is_organisor %}
-                <a class="text-gray-500 hover:text-blue-500" href="{% url 'leads:category-list' %}">
-                    View categories
-                </a>
+                <a class="text-gray-500 hover:text-blue-500" href="{% url 'leads:category-list' %}">View categories</a>
                 {% endif %}
             </div>
             {% if request.user.is_organisor %}
             <div>
-                <a class="text-gray-500 hover:text-blue-500" href="{% url 'leads:lead-create' %}">
-                    Create a new lead
-                </a>
+                <a class="text-gray-500 hover:text-blue-500" href="{% url 'leads:lead-create' %}">Create a new lead</a>
             </div>
             {% endif %}
         </div>
-        <div class="forms-row">
-            <!-- FORM SEARCH/FILTER -->
-            <form method="get" class="filter-form">
-                <div class="search-input-wrapper">
-                    <span class="search-icon">&#128269;</span>
-                    <input type="text" name="q" placeholder="Search leads ..." value="{{ request.GET.q }}">
-                </div>
-                {% if request.user.is_organisor %}
-                <select name="agent">
-                    <option value="">Te gjithe agjentet</option>
-                    {% for agent in agents %}
-                        <option value="{{ agent.id }}" {% if request.GET.agent == agent.id|stringformat:"s" %}selected{% endif %}>
-                            {{ agent.user.username }}
-                        </option>
-                    {% endfor %}
-                </select>
-                {% endif %}
-                <select name="category">
-                    <option value="">Te gjitha kategorite</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
-                            {{ cat.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <select name="perpage" id="per_page" class="border rounded px-2 py-1" onchange="this.form.submit()">
-                    <option value="10" {% if request.GET.perpage == "10" %}selected{% endif %}>10</option>
-                    <option value="50" {% if request.GET.perpage == "50" %}selected{% endif %}>50</option>
-                    <option value="100" {% if request.GET.perpage == "100" %}selected{% endif %}>100</option>
-                    <option value="200" {% if request.GET.perpage == "200" %}selected{% endif %}>200</option>
-                </select>
-                <div class="filter-actions">
-                    <button type="submit" class="filter-btn">Filtroni</button>
-                    {% if request.GET.q or request.GET.agent or request.GET.category or request.GET.perpage %}
-                        <a href="{% url 'leads:lead-list' %}" class="reset-btn-global">&#10006;</a>
+
+        <!-- Filters (left) + bulk tools (right) -->
+        <div class="forms-row flex gap-6 w-full">
+
+            <!-- Filter form -->
+            <div class="w-1/2">
+                <form method="get" class="filter-form">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">&#128269;</span>
+                        <input type="text" name="q" placeholder="Search leads ..." value="{{ request.GET.q }}">
+                    </div>
+
+                    {% if request.user.is_organisor %}
+                    <select id="agent-select" name="agent" multiple>
+                        {% for agent in agents %}
+                            <option value="{{ agent.id }}" {% if agent.id|stringformat:"s" in selected_agents %}selected{% endif %}>
+                                {{ agent.user.get_full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
                     {% endif %}
-                </div>
-            </form>
-            <!-- ASSIGN AGENT -->
+
+                    <select id="category-select" name="category" multiple>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if cat.id|stringformat:"s" in selected_categories %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="perpage" id="per_page" class="border rounded px-2 py-1" onchange="this.form.submit()">
+                        <option value="10" {% if request.GET.perpage == "10" %}selected{% endif %}>10</option>
+                        <option value="100" {% if request.GET.perpage == "100" %}selected{% endif %}>100</option>
+                        <option value="500" {% if request.GET.perpage == "500" %}selected{% endif %}>500</option>
+                        <option value="1000" {% if request.GET.perpage == "1000" %}selected{% endif %}>1000</option>
+                    </select>
+
+                    <select id="affiliate-select" name="affiliate" multiple>
+                        {% for aff in affiliates %}
+                            <option value="{{ aff }}" {% if aff in selected_affiliates %}selected{% endif %}>
+                                {{ aff }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select id="forum-select" name="forum" multiple>
+                        {% for f in forums %}
+                            <option value="{{ f }}" {% if f in selected_forums %}selected{% endif %}>
+                                {{ f }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <select id="country-select" name="country" multiple>
+                        {% for code, name in countries %}
+                            <option value="{{ code }}" {% if code in selected_countries %}selected{% endif %}>
+                                {{ name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="filter-btn">Filtroni</button>
+                        {% if request.GET.q or request.GET.agent or request.GET.category or request.GET.perpage %}
+                            <a href="{% url 'leads:lead-list' %}" class="reset-btn-global">&#10006;</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Shuffle form (standalone: doesn't need the per-row checkboxes) -->
             {% if user.is_organisor %}
-                <form method="POST" action="{% url 'leads:assign-multiple-agents' %}" class="assign-form">
+            <div class="w-1/2">
+                <form method="POST" action="{% url 'leads:shuffle-leads' %}" class="assign-form flex items-center gap-2">
                     {% csrf_token %}
-                    <select id="agent-select" name="agent_id" required>
+                    <select id="shuffle-agent" class="tom-select1" name="agent_ids" multiple required>
+                        {% for agent in agents %}
+                            <option value="{{ agent.id }}">{{ agent.user.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select id="shuffle-status" class="tom-select" name="statuses" multiple required>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if cat.id|stringformat:"s" in selected_categories %}selected{% endif %}>
+                            {{ cat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="custom-blue-button">Shuffle</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Assign-agent controls + table. One form wraps both so the row
+             checkboxes (name="lead_ids") submit together with the chosen agent. -->
+        <div class="w-full">
+            {% if request.user.is_organisor %}
+            <form method="POST" action="{% url 'leads:assign-multiple-agents' %}">
+                {% csrf_token %}
+                <div class="assign-form mb-4">
+                    <select id="assign-agent-select" name="agent_id" required>
                         <option value="" disabled selected>Choose an agent</option>
                         {% for agent in agents %}
                             <option value="{{ agent.id }}">{{ agent.user.get_full_name }}</option>
@@ -82,180 +133,220 @@
                         <input type="checkbox" name="send_as_new" value="1">
                         As new
                     </label>
+                    <button type="submit" class="custom-blue-button">Assign Agent</button>
+                </div>
+            {% endif %}
 
-                    <button type="submit" class="custom-blue-button">
-                        Assign Agent
-                    </button>
-                {% endif %}
-            </div>
-                <!-- TABELA -->
                 <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 table-scroll">
-                        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                            <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                <table class="min-w-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                <label class="inline-flex items-center cursor-pointer space-x-4 select-none select-all-label">
-                                                    <input type="checkbox" id="select-all" class="form-checkbox h-6 w-6 text-blue-600 space-x-6" />
-                                                    <span   class=" select-text inline-flex items-center cursor-pointer space-x-6 select-none">Select_All</span>
-                                                </label>
-                                            </th>
-                                            <th>ID</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First_Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last_Name</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Date Added
-                                            <a id="sort-date"
-                                                href="?{{ request.GET.urlencode }}&sort={% if request.GET.sort == 'date_asc' %}date_desc{% else %}date_asc{% endif %}">
-                                                {% if request.GET.sort == 'date_asc' %}
-                                                    &#9650;
-                                                {% else %}
-                                                    &#9660;
-                                                {% endif %}
-                                            </a>
-                                            </th>
+                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <label class="inline-flex items-center cursor-pointer space-x-4 select-none select-all-label">
+                                                <input type="checkbox" id="select-all" class="form-checkbox h-6 w-6 text-blue-600 space-x-6" />
+                                                <span class="select-text inline-flex items-center cursor-pointer space-x-6 select-none">Select_All</span>
+                                            </label>
+                                        </th>
+                                        <th>ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First_Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last_Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Affiliate</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forum</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Date Added
+                                        <a id="sort-date"
+                                            href="?{{ request.GET.urlencode }}&sort={% if request.GET.sort == 'date_asc' %}date_desc{% else %}date_asc{% endif %}">
+                                            {% if request.GET.sort == 'date_asc' %}
+                                                &#9650;
+                                            {% else %}
+                                                &#9660;
+                                            {% endif %}
+                                        </a>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Comment</th>
+                                        {% if request.user.is_organisor %}
+                                        <th class="px-6 py-3">Edit</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for lead in leads %}
+                                        <tr class="bg-white">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 clickable-cell cursor-pointer lead-checkbox-cell">
+                                                <div class="flex items-center justify-center">
+                                                    <input type="checkbox"
+                                                        name="lead_ids"
+                                                        value="{{ lead.pk }}"
+                                                        class="lead-checkbox w-6 h-6 cursor-pointer">
+                                                </div>
+                                            </td>
+                                            <td class="font-mono">
+                                                {{ lead.id }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium cell-clickable">
+                                                {{ lead.first_name }}
+                                                <a href="{% url 'leads:lead-detail' lead.pk %}" class="cell-overlay"></a>
+                                            </td>
 
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Comment</th>
-                                             {% if request.user.is_organisor %}
-                                            <th class="px-6 py-3">Edit</th>
-                                             {% endif %}
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 cell-clickable">
+                                                {{ lead.last_name }}
+                                                <a href="{% url 'leads:lead-detail' lead.pk %}" class="cell-overlay"></a>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.email }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.phone_number }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                            {% if lead.category %}
+                                                <span class="status-badge status-{{ lead.category.name|slugify }}">
+                                                {{ lead.category.name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="status-badge status-unassigned">Unssigned</span>
+                                            {% endif %}
+                                            </td>
+
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {% if lead.agent %}
+                                                    {{ lead.agent.user.get_full_name }}
+                                                {% else %}
+                                                    No Agent
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.affiliate }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.forum }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ lead.date_added|date:"Y-m-d H:i" }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {% if lead.resolved_country_code %}
+                                                    <div class="inline-flex items-center gap-2">
+                                                        <img src="https://flagcdn.com/24x18/{{ lead.resolved_country_code|lower }}.png"
+                                                            alt="{{ lead.resolved_country_name }}"
+                                                            class="w-5 h-5 rounded-full" />
+                                                        <span>{{ lead.resolved_country_name }}</span>
+                                                    </div>
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ lead.last_followup_note }}
+                                            </td>
+                                            {% if request.user.is_organisor %}
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <a href="{% url 'leads:lead-update' lead.pk %}" class="text-indigo-600 hover:text-indigo-900">
+                                                    Edit
+                                                </a>
+                                            </td>
+                                            {% endif %}
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for lead in leads %}
-                                            <tr class="bg-white">
-                                                <td class="select-text px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer clickable-td text-center clickable-cell">
-                                                    <div class="flex items-center justify-center">
-                                                        <input type="checkbox" 
-                                                               name="lead_ids" 
-                                                               value="{{ lead.pk }}" 
-                                                               class="lead-checkbox w-6 h-6 cursor-pointer">
-                                                        </div>
-                                                    </td>
-                                                </td>
-                                                <td class="font-mono">
-                                                    {{ lead.id }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium clickable-cell">
-                                                    <a href="{% url 'leads:lead-detail' lead.pk %}">
-                                                        {{ lead.first_name }}
-                                                    </a>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 clickable-cell"><a href="{% url 'leads:lead-detail' lead.pk %}">{{ lead.last_name }}</a></td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.email }}</td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lead.phone_number }}</td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                {% if lead.category %}
-                                                    <span class="status-badge status-{{ lead.category.name|slugify }}">
-                                                    {{ lead.category.name }}
-                                                    </span>
-                                                {% else %}
-                                                    <span class="status-badge status-unassigned">Unassigned</span>
-                                                {% endif %}
-                                                </td>
-
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {% if lead.agent %}
-                                                        {{ lead.agent.user.get_full_name }}
-                                                    {% else %}
-                                                        No Agent
-                                                    {% endif %}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ lead.date_added|date:"Y-m-d H:i" }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {{ lead.last_followup_note }}
-                                                </td>
-                                                {% if request.user.is_organisor %}
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <a href="{% url 'leads:lead-update' lead.pk %}" class="text-indigo-600 hover:text-indigo-900">
-                                                        Edit
-                                                    </a>
-                                                </td>
-                                                {% endif %}
-                                            </tr>
-                                        {% empty %}
-                                            <tr>
-                                                <td colspan="10" class="text-center text-gray-500 py-4">
-                                                    There are currently no leads
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="100" class="text-center text-gray-500 py-4">
+                                                There are currently no leads
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </form>
-            </div>
+                </div>
+
+            {% if request.user.is_organisor %}
+            </form>
+            {% endif %}
         </div>
+
+    </div>
 </section>
 
-
 <div class="pagination flex justify-center mt-4">
-   <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+ <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+
     {% if page_obj.has_previous %}
-    <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.perpage %}&perpage={{ request.GET.perpage }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+    <a href="?page=1&{{ querystring }}"
        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
         &#171; First
     </a>
-    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.perpage %}&perpage={{ request.GET.perpage }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+
+    <a href="?page={{ page_obj.previous_page_number }}&{{ querystring }}"
        class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
         &#8249; Previous
     </a>
     {% endif %}
 
     {% for page in page_obj.paginator.page_range %}
-        <a href="?page={{ page }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.perpage %}&perpage={{ request.GET.perpage }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
-            class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {% if page == page_obj.number %}bg-blue-500 text-white border-blue-500{% else %}bg-white border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">
+      {% if page >= page_obj.number|add:'-3' and page <= page_obj.number|add:'3' %}
+        <a href="?page={{ page }}&{{ querystring }}"
+           class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {% if page == page_obj.number %}bg-blue-500 text-white border-blue-500{% else %}bg-white border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">
             {{ page }}
         </a>
+      {% endif %}
     {% endfor %}
 
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.perpage %}&perpage={{ request.GET.perpage }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+    <a href="?page={{ page_obj.next_page_number }}&{{ querystring }}"
        class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
         Next &#8250;
     </a>
-    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.agent %}&agent={{ request.GET.agent }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.perpage %}&perpage={{ request.GET.perpage }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" 
+
+    <a href="?page={{ page_obj.paginator.num_pages }}&{{ querystring }}"
        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
         Last &#187;
     </a>
     {% endif %}
-    </nav>
+ </nav>
 </div>
 
-
-
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
+
+    // "Select all" master checkbox toggles every row checkbox
     const selectAllCheckbox = document.getElementById("select-all");
     if (selectAllCheckbox) {
         selectAllCheckbox.addEventListener("change", function () {
-            let checkboxes = document.querySelectorAll(".lead-checkbox");
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            document.querySelectorAll(".lead-checkbox").forEach(cb => cb.checked = this.checked);
         });
     }
+
+    // Clicking anywhere in a checkbox cell toggles that row's checkbox
+    document.querySelectorAll(".lead-checkbox-cell").forEach(cell => {
+        cell.addEventListener("click", function (e) {
+            if (e.target.tagName !== "INPUT") {
+                const cb = cell.querySelector(".lead-checkbox");
+                if (cb) cb.checked = !cb.checked;
+            }
+        });
+    });
+
+    // Filter bar multi-selects
+    const filterPlaceholders = {
+        "#agent-select": "Choose agents",
+        "#category-select": "Choose a status",
+        "#affiliate-select": "Choose an affiliate",
+        "#forum-select": "Choose a forum",
+        "#country-select": "Choose a country",
+    };
+    Object.entries(filterPlaceholders).forEach(([selector, placeholder]) => {
+        const el = document.querySelector(selector);
+        if (el) new TomSelect(el, { plugins: ["remove_button"], placeholder });
+    });
+
+    // Shuffle form multi-selects
+    document.querySelectorAll(".tom-select1").forEach(el => {
+        new TomSelect(el, { plugins: ["remove_button"], placeholder: "Choose agents" });
+    });
+    document.querySelectorAll(".tom-select").forEach(el => {
+        new TomSelect(el, { plugins: ["remove_button"], placeholder: "Choose a status" });
+    });
 });
-
-document.querySelectorAll(".clickable-td").forEach(td => {
-  td.addEventListener("click", function(e){
-    if (e.target.tagName !== "INPUT") {
-      let cb = this.querySelector("input[type=checkbox]");
-      cb.checked = !cb.checked;
-    }
-  });
-});
-
-
-
 </script>
-</body>
-</html>
 {% endblock content %}

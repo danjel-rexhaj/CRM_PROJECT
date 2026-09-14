@@ -70,6 +70,44 @@
               <input type="text" value="{{ lead.phone_number }}" readonly class="overview-input">
             </div>
 
+            <div class="form-group">
+              <label class="overview-label">Agent</label>
+              <input type="text" value="{{ lead.agent.user.get_full_name }}" readonly class="overview-input">
+            </div>
+            
+<div class="form-group">
+  <label class="overview-label">Country</label>
+  {% if lead.resolved_country_code %}
+    <div class="flex items-center border rounded-md px-3 py-2 bg-gray-800 text-white overview-input">
+      <!-- Flamuri -->
+      <img src="https://flagcdn.com/24x18/{{ lead.resolved_country_code|lower }}.png"
+           alt="{{ lead.resolved_country_name }}"
+           class="w-5 h-5 rounded-full mr-2" />
+      <!-- Emri i shtetit -->
+      <span>{{ lead.resolved_country_name }}</span>
+    </div>
+  {% else %}
+    <div class="border rounded-md px-3 py-2 bg-gray-800 text-white overview-input">
+      No country
+    </div>
+  {% endif %}
+</div>
+
+
+
+
+
+            <!-- Rreshti 5 -->
+
+            <div class="form-group">
+              <label class="overview-label">Affiliate</label>
+              <input type="text" value="{{ lead.affiliate }}" readonly class="overview-input">
+            </div>
+            <div class="form-group">
+              <label class="overview-label">Source</label>
+              <input type="text" value="{{ lead.forum }}" readonly class="overview-input">
+            </div>
+
             <!-- Save -->
             <div class="save-wrapper">
               <button type="submit" id="saveButton" class="saveButton">Save</button>

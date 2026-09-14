@@ -4,7 +4,8 @@ from .views import (
     LeadListView, LeadDetailView, LeadCreateView, LeadUpdateView, LeadDeleteView,
     AssignAgentView, CategoryListView, CategoryDetailView, LeadCategoryUpdateView,
     CategoryCreateView, CategoryUpdateView, CategoryDeleteView, LeadJsonView, 
-    FollowUpCreateView, FollowUpUpdateView, FollowUpDeleteView,  AssignMultipleAgentsView, PublicLeadCreateView,ThankYouView, amazon_webhook, lead_prev, lead_next,notifications_feed, notifications_mark_read
+    FollowUpCreateView, FollowUpUpdateView, FollowUpDeleteView,  AssignMultipleAgentsView, PublicLeadCreateView,ThankYouView, 
+    affiliate_webhook, lead_prev, lead_next,notifications_feed, notifications_mark_read,shuffle_leads
 )
 
 
@@ -34,5 +35,7 @@ urlpatterns = [
     path("<int:pk>/next/", lead_next, name="lead-next"),
     path("notifications/feed/", notifications_feed, name="notifications-feed"),
     path("notifications/mark-read/", notifications_mark_read, name="notifications-mark-read"),
-    path("api/amazon-webhook/", amazon_webhook, name="amazon_webhook"),
+    path("api/webhook/<str:affiliate>/<str:forum>/", affiliate_webhook, name="affiliate_webhook"),
+    path("leads/shuffle/", shuffle_leads, name="shuffle-leads"),
+
 ]

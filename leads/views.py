@@ -1,5 +1,8 @@
 import logging
-import datetime
+from datetime import datetime, date, timedelta
+from django_countries import countries
+from django.contrib import messages
+from django.shortcuts import redirect
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -27,10 +30,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 
+from datetime import datetime
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
+from django.utils.timezone import localtime
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import AgentLoginLog
 
 from agents.mixins import OrganisorAndLoginRequiredMixin
 from .forms import (
-    LeadForm,
     LeadModelForm,
     CustomUserCreationForm,
     AssignAgentForm,
@@ -84,7 +93,7 @@ class DashboardView(OrganisorAndLoginRequiredMixin, generic.TemplateView):
         total_lead_count = Lead.objects.filter(organisation=user.userprofile).count()
 
         # How many new leads in the last 30 days
-        thirty_days_ago = datetime.date.today() - datetime.timedelta(days=30)
+        thirty_days_ago = date.today() - timedelta(days=30)
 
         total_in_past30 = Lead.objects.filter(
             organisation=user.userprofile,
@@ -110,7 +119,6 @@ class DashboardView(OrganisorAndLoginRequiredMixin, generic.TemplateView):
 def landing_page(request):
     return render(request, "landing.html")
 
-
 class LeadListView(LoginRequiredMixin, generic.ListView):
     template_name = "leads/lead_list.html"
     context_object_name = "leads"
@@ -129,7 +137,7 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
                 organisation=user.userprofile,
                 agent__isnull=False
             )
-        elif hasattr(user, "agent"):  # kontrollojmë nëse ka agent
+        elif hasattr(user, "agent"):
             queryset = Lead.objects.filter(
                 organisation=user.agent.organisation,
                 agent__isnull=False
@@ -137,17 +145,16 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         else:
             return Lead.objects.none()
 
-        # --- Filtrimet ---
+        # --- filtrat ---
         q = self.request.GET.get("q")
         agent = self.request.GET.get("agent")
-        category = self.request.GET.get("category")
+        category = self.request.GET.getlist("category")
+        affiliates = self.request.GET.getlist("affiliate")
+        forums = self.request.GET.getlist("forum")
 
         if q:
             if q.isdigit():
-                queryset = queryset.filter(
-                     Q(id=int(q)) |               # vetëm ID exakte
-            Q(phone_number=q)            # vetëm numri exakte
-                )
+                queryset = queryset.filter(Q(id=int(q)) | Q(phone_number=q))
             else:
                 queryset = queryset.filter(
                     Q(first_name__icontains=q) |
@@ -155,24 +162,53 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
                     Q(email__icontains=q)
                 )
 
-        if agent:
-            queryset = queryset.filter(agent__id=agent)
-        if category:
-            queryset = queryset.filter(category__id=category)
+        agents_filter = self.request.GET.getlist("agent")
+        if agents_filter:
+            queryset = queryset.filter(agent__id__in=agents_filter)
 
-        # --- Renditja ---
+        if category:
+            if "unassigned" in category:
+                queryset = queryset.filter(category__isnull=True)
+            else:
+                queryset = queryset.filter(category__id__in=category)
+
+        if affiliates:
+            queryset = queryset.filter(affiliate__in=affiliates)
+
+        if forums:
+            queryset = queryset.filter(forum__in=forums)
+
+        countries = self.request.GET.getlist("country")
+        if countries:
+            # Merr nga DB ato që kanë country
+            queryset = queryset.filter(country__in=countries)
+
+            # IDs ekstra nga prefikset
+            extra_ids = [
+                lead.id for lead in Lead.objects.filter(
+                    organisation=user.userprofile if user.is_organisor else user.agent.organisation
+                )
+                if not lead.country and lead.resolved_country_code in countries
+            ]
+
+
+
+
+        # --- renditja ---
         sort = self.request.GET.get("sort")
         if sort == "date_asc":
-            queryset = queryset.order_by("date_added")   # më i vjetri në fillim
+            queryset = queryset.order_by("date_added")
         elif sort == "date_desc":
-            queryset = queryset.order_by("-date_added")  # më i riu në fillim
+            queryset = queryset.order_by("-date_added")
         elif sort == "first_asc":
             queryset = queryset.order_by("first_name")
         elif sort == "first_desc":
             queryset = queryset.order_by("-first_name")
         else:
-            # DEFAULT → më të rinjtë në fillim
             queryset = queryset.order_by("-date_added")
+
+        # ✅ ruaj ID e filtruar në session
+        self.request.session["visible_leads"] = list(queryset.values_list("id", flat=True))
 
         return queryset
 
@@ -181,42 +217,46 @@ class LeadListView(LoginRequiredMixin, generic.ListView):
         user = self.request.user
 
         if user.is_organisor:
-            context["unassigned_leads"] = Lead.objects.filter(
-                organisation=user.userprofile,
-                agent__isnull=True
-            )
-            context["agents"] = Agent.objects.filter(
-                organisation=user.userprofile
-            )
-            context["categories"] = Category.objects.filter(
-                organisation=user.userprofile
-            )
+            categories = Category.objects.filter(organisation=user.userprofile)
         elif hasattr(user, "agent"):
-            context["agents"] = Agent.objects.filter(
-                organisation=user.agent.organisation
-            )
-            context["categories"] = Category.objects.filter(
-                organisation=user.agent.organisation
-            )
+            categories = Category.objects.filter(organisation=user.agent.organisation)
         else:
-            context["agents"] = Agent.objects.none()
-            context["categories"] = Category.objects.none()
+            categories = Category.objects.none()
 
+        categories = list(categories)
+        categories.insert(0, type("obj", (), {"id": "unassigned", "name": "Unassigned"})())
+
+        context["categories"] = categories
+        context["agents"] = Agent.objects.filter(
+            organisation=user.userprofile if user.is_organisor else user.agent.organisation
+        )
         context["unread_notifications"] = user.notifications.filter(read=False)
         context["unread_count"] = context["unread_notifications"].count()
 
-        # Ruaj id-të sipas filtrave, sort-it dhe faqes aktuale
-        queryset = self.get_queryset()
-        lead_ids = list(queryset.values_list("id", flat=True))
-        self.request.session["visible_leads"] = lead_ids
+        context["selected_affiliates"] = self.request.GET.getlist("affiliate")
+        context["selected_forums"] = self.request.GET.getlist("forum")
+        context["affiliates"] = Lead.objects.exclude(
+            affiliate__isnull=True
+        ).exclude(affiliate="").values_list("affiliate", flat=True).distinct()
+        context["forums"] = Lead.objects.exclude(
+            forum__isnull=True
+        ).exclude(forum="").values_list("forum", flat=True).distinct()
+        context["selected_categories"] = self.request.GET.getlist("category")
 
-        # Ruaj querystring që të rikthehesh me back button
+        context["countries"] = list(countries)  
+        context["selected_countries"] = self.request.GET.getlist("country")
+
+        # ✅ ruaj query string pa "page"
+        qs = self.request.GET.copy()
+        if "page" in qs:
+            qs.pop("page")
+        context["querystring"] = qs.urlencode()
+
+        # Ruaj query origjinale në session nëse të duhet
         self.request.session["last_leads_query"] = self.request.GET.urlencode()
+        context["selected_agents"] = self.request.GET.getlist("agent")
 
         return context
-
-
-
 
 
 def lead_list(request):
@@ -521,10 +561,24 @@ class LeadCategoryUpdateView(LoginRequiredMixin, generic.UpdateView):
     def form_valid(self, form):
         lead_before_update = self.get_object()
         instance = form.save(commit=False)
-        converted_category = Category.objects.get(name="Converted")
-        if form.cleaned_data["category"] == converted_category:
-            if lead_before_update.category != converted_category:
-                instance.converted_date = datetime.datetime.now()
+
+        user = self.request.user
+
+        if user.is_organisor:
+            organisation = user.userprofile
+        else:
+            organisation = user.agent.organisation
+
+        converted_category = Category.objects.filter(
+            name="Converted",
+            organisation=organisation
+        ).first()
+
+        if converted_category:
+            if form.cleaned_data["category"] == converted_category:
+                if lead_before_update.category != converted_category:
+                    instance.converted_date = datetime.now()
+
         instance.save()
         messages.success(self.request, "✅ Statusi i lead-it u ndryshua me sukses!")
         return super().form_valid(form)
@@ -741,7 +795,8 @@ class PublicLeadCreateView(View):
     template_name = "leads/public_lead_form.html"
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, {})  # gjithmonë jep context
+        # kur hap faqen me GET → shfaq formën
+        return render(request, self.template_name)
 
     def post(self, request, *args, **kwargs):
         first_name = request.POST.get("first_name")
@@ -750,6 +805,9 @@ class PublicLeadCreateView(View):
         phone_number = request.POST.get("phone_number")
         age = request.POST.get("age")
         service = request.POST.get("service")
+
+        affiliate = "MyAff"
+        forum = "MyForum"
 
         if not (first_name and last_name and email):
             messages.error(request, "Plotëso të gjitha fushat e kërkuara.")
@@ -776,10 +834,16 @@ class PublicLeadCreateView(View):
             organisation=organisation,
             agent=agent,
             category=new_category,
+            service=service,
+            affiliate=affiliate,
+            forum=forum,
         )
 
-        messages.success(request, "New lead just came!")
+        messages.success(request, "✅ New lead just came!")
         return redirect("leads:thank-you")
+
+
+
 
 
 class ThankYouView(generic.TemplateView):
@@ -788,33 +852,26 @@ class ThankYouView(generic.TemplateView):
 
 
 @login_required
-def lead_next(request, pk):
-    lead_ids = request.session.get("visible_leads", [])
-    pk = int(pk)
-    if pk not in lead_ids:
-        return redirect("leads:lead-list")
-
-    current_index = lead_ids.index(pk)
-    if current_index + 1 < len(lead_ids):
-        next_id = lead_ids[current_index + 1]
-    else:
-        next_id = lead_ids[0]  # rikthehet tek i pari nëse s’ka më
-    return redirect("leads:lead-detail", pk=next_id)
-
-
-@login_required
 def lead_prev(request, pk):
     lead_ids = request.session.get("visible_leads", [])
     pk = int(pk)
     if pk not in lead_ids:
         return redirect("leads:lead-list")
+    idx = lead_ids.index(pk)
+    prev_id = lead_ids[idx - 1] if idx > 0 else lead_ids[-1]
+    query = request.session.get("last_leads_query", "")
+    return redirect(f"{reverse('leads:lead-detail', args=[prev_id])}?{query}")
 
-    current_index = lead_ids.index(pk)
-    if current_index - 1 >= 0:
-        prev_id = lead_ids[current_index - 1]
-    else:
-        prev_id = lead_ids[-1]  # shkon tek i fundit nëse është tek i pari
-    return redirect("leads:lead-detail", pk=prev_id)
+@login_required
+def lead_next(request, pk):
+    lead_ids = request.session.get("visible_leads", [])
+    pk = int(pk)
+    if pk not in lead_ids:
+        return redirect("leads:lead-list")
+    idx = lead_ids.index(pk)
+    next_id = lead_ids[idx + 1] if idx + 1 < len(lead_ids) else lead_ids[0]
+    query = request.session.get("last_leads_query", "")
+    return redirect(f"{reverse('leads:lead-detail', args=[next_id])}?{query}")
 
 
 
@@ -845,7 +902,7 @@ def notifications_feed(request):
         "url": n.url or "",
         "created_at": n.created_at.isoformat(),
         "read": n.read,
-    } for n in qs[:10]]
+    } for n in qs[:10000000000]]
 
     unread_count = Notification.objects.filter(user=request.user, read=False).count()
 
@@ -875,17 +932,27 @@ def notifications_mark_read(request):
     return JsonResponse({"ok": True, "unread_count": unread_count})
 
 
+import sys
+
 @receiver(post_save, sender=Lead)
 def notify_new_lead(sender, instance, created, **kwargs):
+    # 🚨 mos e ekzekuto gjatë loaddata
+    if 'loaddata' in sys.argv:
+        return  
+
     if not created:
         return
+
+    if not instance.organisation:  # mbrojtje shtesë
+        return
+
     admin_user = instance.organisation.user
     Notification.objects.create(
         user=admin_user,
         message=f"New lead: {instance.first_name} {instance.last_name}",
         url=reverse("leads:lead-detail", kwargs={"pk": instance.pk}),
     )
-  
+
 
 
 
@@ -897,48 +964,69 @@ def welcome_new_user(request):
     return render(request, "registration/welcome.html")
 
 
-
-
-@csrf_exempt  # lejon POST nga jashtë (Amazon) pa CSRF
+@csrf_exempt
 @require_POST
-def amazon_webhook(request):
+def affiliate_webhook(request, affiliate, forum):
     import json
+
+    secret = request.headers.get("X-Webhook-Secret")
+    if secret != settings.WEBHOOK_SECRET:
+        return JsonResponse({"ok": False, "error": "invalid secret"}, status=403)
+
     try:
         data = json.loads(request.body)
 
-        # merr user admin / organizatën
         admin_user = User.objects.get(username="admin")
         organisation = admin_user.userprofile
         agent, _ = Agent.objects.get_or_create(user=admin_user, organisation=organisation)
+        new_category, _ = Category.objects.get_or_create(name="New", organisation=organisation)
 
-        # gjej ose krijo kategorinë "New"
-        new_category, _ = Category.objects.get_or_create(
-            name="New", organisation=organisation
-        )
+        leads_created = []
 
-        lead = Lead.objects.create(
-            first_name=data.get("first_name", ""),
-            last_name=data.get("last_name", ""),
-            email=data.get("email", ""),
-            phone_number=data.get("phone", ""),
-            organisation=organisation,
-            agent=agent,
-            category=new_category,
-        )
+        # ✅ Nëse vjen listë
+        if isinstance(data, list):
+            for item in data:
+                lead = Lead.objects.create(
+                    first_name=item.get("first_name", ""),
+                    last_name=item.get("last_name", ""),
+                    email=item.get("email", ""),
+                    phone_number=item.get("phone", ""),
+                    organisation=organisation,
+                    agent=agent,
+                    category=new_category,
+                    age=item.get("age", 0),
+                    country=item.get("country", ""),
+                    affiliate=affiliate,
+                    forum=forum,
+                )
+                leads_created.append(lead.id)
 
-        return JsonResponse({"ok": True, "lead_id": lead.id})
+        # ✅ Nëse vjen vetëm një objekt
+        elif isinstance(data, dict):
+            lead = Lead.objects.create(
+                first_name=data.get("first_name", ""),
+                last_name=data.get("last_name", ""),
+                email=data.get("email", ""),
+                phone_number=data.get("phone", ""),
+                organisation=organisation,
+                agent=agent,
+                category=new_category,
+                age=data.get("age", 0),
+                country=data.get("country", ""),
+                affiliate=affiliate,
+                forum=forum,
+            )
+            leads_created.append(lead.id)
+
+        return JsonResponse({"ok": True, "lead_ids": leads_created})
+
     except Exception as e:
-        logger.error(f"Amazon webhook error: {e}")
+        logger.error(f"Affiliate webhook error: {e}")
         return JsonResponse({"ok": False, "error": str(e)}, status=400)
 
 
-from datetime import datetime
-from django.contrib.auth.signals import user_logged_in
-from django.dispatch import receiver
-from django.utils.timezone import localtime
-from django.core.mail import send_mail
-from django.conf import settings
-from .models import AgentLoginLog
+
+
 
 @receiver(user_logged_in)
 def notify_agent_login(sender, request, user, **kwargs):
@@ -986,3 +1074,66 @@ def notify_agent_login(sender, request, user, **kwargs):
                 recipient_list=[admin_email],
                 fail_silently=False,
             )
+
+
+
+import random
+
+@login_required
+def shuffle_leads(request):
+    if request.method == "POST" and request.user.is_organisor:
+        agent_ids = request.POST.getlist("agent_ids")
+        status_ids = request.POST.getlist("statuses")
+
+        if not agent_ids or not status_ids:
+            messages.error(request, "❌ Zgjidh të paktën një agjent dhe një status.")
+            return redirect("leads:lead-list")
+
+        if len(agent_ids) < 2:
+            messages.error(request, "⚠️ Shuffle kërkon minimumi 2 agjentë.")
+            return redirect("leads:lead-list")
+
+        agents = list(Agent.objects.filter(id__in=agent_ids))
+
+        qs = Lead.objects.filter(agent__in=agents)
+
+        if "unassigned" in status_ids:
+            qs = qs.filter(
+                Q(category__isnull=True) |
+                Q(category_id__in=[sid for sid in status_ids if sid != "unassigned"])
+            )
+        else:
+            qs = qs.filter(category_id__in=status_ids)
+
+        leads = list(qs)
+
+        if not leads:
+            messages.warning(request, "ℹ️ S’u gjetën leads për shuffle.")
+            return redirect("leads:lead-list")
+
+        # 🔥 RANDOM SHUFFLE
+        random.shuffle(leads)
+
+        reassigned = 0
+
+        for lead in leads:
+            new_agent = random.choice(agents)
+            if lead.agent != new_agent:
+                lead.agent = new_agent
+                lead.save()
+                reassigned += 1
+
+        # Notifikime
+        for agent in agents:
+            count = Lead.objects.filter(agent=agent, id__in=[l.id for l in leads]).count()
+            if count > 0:
+                Notification.objects.create(
+                    user=agent.user,
+                    message=f"🔄 Ju janë rishpërndarë {count} leads rastësisht.",
+                    url=reverse("leads:lead-list"),
+                )
+
+        messages.success(request, f"✅ U përzien {len(leads)} leads në mënyrë rastësore.")
+        return redirect("leads:lead-list")
+
+    return redirect("leads:lead-list")

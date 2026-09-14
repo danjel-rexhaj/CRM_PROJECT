@@ -3,21 +3,37 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UsernameField
 from .models import Lead, Agent, Category, FollowUp
+from django_countries.widgets import CountrySelectWidget
+from .models import Lead
+from django import forms
+from django_countries.widgets import CountrySelectWidget
+from .models import Lead, Agent, Category, FollowUp
+from django.contrib.auth.forms import UserCreationForm, UsernameField
+from django.contrib.auth import get_user_model
+from phonenumbers import geocoder
 
 User = get_user_model()
-
 
 class LeadModelForm(forms.ModelForm):
     class Meta:
         model = Lead
         fields = (
-            'first_name',
-            'last_name',
-            'age',
-            'agent',
-            'phone_number',
-            'email'
+            "first_name",
+            "last_name",
+            "age",
+            "agent",
+            "phone_number",
+            "email",
+            "affiliate",
+            "forum",
+            "country",  # ✅ shto fushën country
         )
+        widgets = {
+            "country": CountrySelectWidget(attrs={
+                "class": "border rounded-md p-2 w-full"
+            }),
+        }
+
 
     
     def clean_first_name(self):
@@ -35,10 +51,6 @@ class LeadModelForm(forms.ModelForm):
 
 
 
-class LeadForm(forms.Form):
-    first_name = forms.CharField()
-    last_name = forms.CharField()
-    age = forms.IntegerField(min_value=0)
 
 
 class CustomUserCreationForm(UserCreationForm):

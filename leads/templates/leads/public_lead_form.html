@@ -7,18 +7,23 @@
     </div>
 
     <form method="POST">
-      {% csrf_token %}
-      <input type="text" name="first_name" placeholder="Emri" required>
-      <input type="text" name="last_name" placeholder="Mbiemri" required>
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="tel" name="phone_number" placeholder="Numri i telefonit">
-      <input type="number" name="age" placeholder="Mosha" min="0" step="1">
-      <select name="service" required>
-        <option value="">Zgjidh shërbimin</option>
-        <option value="visa_uk">Invest</option>
-        <option value="visa_usa">Recovery</option>
-      </select>
-      <button type="submit">Submit</button>
-    </form>
+  {% csrf_token %}
+  
+  <input type="text" name="first_name" placeholder="Name" required>
+  <input type="text" name="last_name" placeholder="Last Name" required>
+  <input type="email" name="email" placeholder="Email" required>
+  <input type="tel" name="phone_number" placeholder="Phone Number">
+  <input type="number" name="age" placeholder="Age" min="0" step="1">
+  <input type="text" name="country" placeholder="Country">
+  
+  <select name="service" required>
+      <option value="">Zgjidh shërbimin</option>
+      <option value="invest">Invest</option>
+      <option value="recovery">Recovery</option>
+  </select>
+  
+  <button type="submit">Submit</button>
+</form>
+
 </div>
  

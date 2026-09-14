@@ -85,9 +85,12 @@
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
-
     margin-bottom: 20px;
 }
+
+
+
+
 
 /* Search input me ikonë 🔍 dhe reset ✖ */
 .search-input-wrapper {
@@ -312,26 +315,6 @@ body.dark .pagination a.bg-blue-500.text-white.border-blue-500 {
   line-height:1;
 }
 
-/* ngjyrat sipas kategorisë (light) */
-.status-converted       { background:#dcfce7; color:#166534; } /* green  */
-.status-new             { background:#dbeafe; color:#1e40af; } /* blue   */
-.status-live            { background:#e0e7ff; color:#30a33f; } /* indigo */
-.status-call-back       { background:#fef3c7; color:#92400e; } /* amber  */
-.status-not-interested  { background:#fee2e2; color:#991b1b; } /* red    */
-.status-no-answer       { background:#f5f5f5; color:#374151; } /* gray   */
-.status-unassigned      { background:#e5e7eb; color:#111827; } /* gray   */
-
-/* dark mode (opsionale) */
-@media (prefers-color-scheme: dark){
-  .status-converted       { background:rgba(16,185,129,.15); color:#50dda9; }
-  .status-new             { background:rgba(59,130,246,.15); color:#71affc; }
-  .status-live            { background:rgba(174, 13, 238, 0.18); color:#df63e4; }
-  .status-call-back       { background:rgba(245,158,11,.18); color:#fbbf24; }
-  .status-not-interested  { background:rgba(219, 34, 34, 0.18);  color:#f87171; }
-  .status-no-answer       { background:rgba(156,163,175,.18);color:#d1d5db; }
-  .status-unassigned      { background:rgba(156,163,175,.15);color:#e5e7eb; }
-}
-
 
 /* Reset Password page */
 .reset_password{
@@ -465,3 +448,254 @@ body.dark .dashboard-card h2 {
 body.dark .dashboard-card p {
     color: #cbd5e1;
 }
+
+
+
+/* Textbox si koment i shkurtuar */
+#affiliate-select.ts-wrapper .ts-control {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: #0f172a;  /* dark bg */
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  border-radius: 6px;
+}
+
+/* Kur hapet dropdown */
+#affiliate-select.ts-wrapper.dropdown-active .ts-control {
+  white-space: normal;   /* lejon disa rreshta brenda dropdown */
+}
+
+
+/* ================= Tom Select Compact & Unified ================= */
+body.dark #affiliate-select.ts-wrapper .ts-control {
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+}
+
+body.dark #forum-select.ts-wrapper .ts-control {
+  background: #0f172a;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+}
+/* Dark mode & Light mode bazë */
+.ts-wrapper {
+    min-width: 180px;
+    min-height: 38px; 
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+    font-size: 14px;
+}
+
+/* Dark mode override */
+body.dark .ts-wrapper {
+    background-color: #0f172a !important;  /* si select normal */
+    border: 1px solid #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+/* Input container */
+.ts-wrapper .ts-control {
+    background: transparent !important;
+    border: none !important;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.filter-form .ts-wrapper,
+.assign-form .ts-wrapper {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Chips (items e zgjedhura) */
+.ts-wrapper .ts-control .item {
+    background: #2563eb !important; /* blu */
+    color: #fff !important;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+}
+
+/* Butoni X në chip */
+.ts-wrapper .ts-control .remove {
+    color: #fca5a5 !important;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+/* Dropdown lista */
+.ts-wrapper .ts-dropdown {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    color: #111;
+}
+
+/* Dark mode dropdown */
+body.dark .ts-wrapper .ts-dropdown {
+    background-color: #111827 !important;
+    border: 1px solid #374151 !important;
+    color: #f9fafb !important;
+}
+
+/* Opsionet në listë */
+.ts-wrapper .ts-dropdown .option {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+/* Hover mbi opsion */
+.ts-wrapper .ts-dropdown .option:hover {
+    background-color: #2563eb !important;
+    color: white !important;
+}
+
+/* Fshi input-in e brendshëm që e zmadho */
+.ts-wrapper.multi .ts-control > input {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 20px !important;
+}
+
+.cell-clickable {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+.cell-clickable:hover {
+  background-color: #f1f5f9;
+}
+
+body.dark .cell-clickable:hover {
+  background-color: #2d3b52;
+}
+
+body.dark .lead-checkbox-cell {
+    transition: background-color 0.2s ease;
+}
+
+body.dark .lead-checkbox-cell:hover {
+    background-color: #2d3b52;
+}
+
+body.dark table td {
+    color: #e2e8f0 !important;
+}
+
+table td {
+    color: #000000 !important;
+    font-weight: 0 !important;
+}
+
+
+
+
+
+
+
+ .status-converted {
+    background: rgba(16,185,129,.15);
+    color: #34d399;
+  }
+
+ .status-new {
+    background: rgba(59,130,246,.15);
+    color: #60a5fa;
+  }
+
+  .status-live {
+    background: rgba(99,102,241,.18);
+    color: #a5b4fc;
+  }
+
+ .status-call-back {
+    background: rgba(245,158,11,.18);
+    color: #fbbf24;
+  }
+
+ .status-not-interested {
+    background: rgba(239,68,68,.18);
+    color: #f87171;
+  }
+
+
+ .status-no-answer {
+    background: rgba(148,163,184,.15);   /* slate soft */
+    color: #73777c;                      /* light gray */
+  }
+
+ .status-voicemail {
+    background: rgba(6,182,212,.15);     /* cyan soft */
+    color: #22d3ee;                      /* cyan bright */
+  }
+ .status-error-call {
+    background: rgba(244,63,94,.15);     /* rose soft */
+    color: #fb7185;                      /* rose bright */
+  }
+
+
+/* DARK MODE */
+
+  body.dark .status-converted {
+    background: rgba(16,185,129,.15);
+    color: #34d399;
+  }
+
+  body.dark .status-new {
+    background: rgba(59,130,246,.15);
+    color: #60a5fa;
+  }
+
+  body.dark.status-live {
+    background: rgba(99,102,241,.18);
+    color: #a5b4fc;
+  }
+
+  body.dark .status-call-back {
+    background: rgba(245,158,11,.18);
+    color: #fbbf24;
+  }
+
+  body.dark .status-not-interested {
+    background: rgba(239,68,68,.18);
+    color: #f87171;
+  }
+
+
+  body.dark .status-no-answer {
+    background: rgba(148,163,184,.15);   /* slate soft */
+    color: #cbd5e1;                      /* light gray */
+  }
+
+  body.dark .status-voicemail {
+    background: rgba(6,182,212,.15);     /* cyan soft */
+    color: #22d3ee;                      /* cyan bright */
+  }
+
+  body.dark .status-error-call {
+    background: rgba(244,63,94,.15);     /* rose soft */
+    color: #fb7185;                      /* rose bright */
+  }
+
