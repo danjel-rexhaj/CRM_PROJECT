@@ -139,3 +139,7 @@ cython_debug/
 
 static_root
 media_root
+
+# Data dumps contain real user password hashes and lead PII - never commit
+data_clean_fixed2.json
+*.dump.json
