@@ -9,14 +9,19 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-environ.Env.read_env(BASE_DIR / 'djcrm' / '.env')
+environ.Env.read_env(str(BASE_DIR / 'djcrm' / '.env'))
+
 
 
 DEBUG = env('DEBUG')
 SECRET_KEY = env('SECRET_KEY')
+WEBHOOK_SECRET = env('WEBHOOK_SECRET', default='change-me-in-env')
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+
+
+
 
 # Application definition
 
@@ -28,10 +33,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_countries',
+    'django_extensions',
 
     # Third party apps
     'crispy_forms',
-    "crispy_tailwind",
+    'crispy_tailwind',
     'tailwind',
     'theme',
 
@@ -76,12 +83,8 @@ WSGI_APPLICATION = 'djcrm.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
-
 
 
 # Password validation
@@ -194,11 +197,15 @@ TAILWIND_APP_NAME = 'theme'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.app",
-]
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=["https://*.ngrok-free.app", "https://*.onrender.com"],
+)
+
+ALLOWED_LOGIN_START = "09:00"
+ALLOWED_LOGIN_END = "22:00"
 
 
-# Orari i lejuar i login-it për agjentët
-ALLOWED_LOGIN_START = "09:00"   # ora 09:00
-ALLOWED_LOGIN_END = "22:00"     # ora 22:20
+DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000   # 500 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000   # 500 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 524288000  # 500 MB per pjesen e assign agents
