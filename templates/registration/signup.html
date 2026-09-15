@@ -3,17 +3,155 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'leads.admin.css' %}" />
-<div class="signup_page max-w-lg mx-auto">
-    <h1>Create an Account</h1>
-    <form method="post" class="mt-5">
-        {% csrf_token %}
-        {{ form|crispy }}
-        <button type='submit' class="w-full text-white bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-md">
-            Signup
-        </button>
-    </form>
-    <div class="py-5 border-t border-gray-200 mt-5">
-        <a class="hover:text-blue-500" href="{% url 'login' %}">Already have an account?</a>
+
+<style>
+    .login-shell {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 400px;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 2.5rem 2.25rem 2rem;
+        box-shadow: 0 20px 45px -12px rgba(30, 41, 59, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.04);
+    }
+
+    .login-card__icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 1.25rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #4f46e5, #3b82f6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.55);
+    }
+
+    .login-card__icon svg {
+        width: 26px;
+        height: 26px;
+        stroke: #ffffff;
+    }
+
+    .login-card h1 {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .login-card__subtitle {
+        text-align: center;
+        font-size: 0.875rem;
+        color: #64748b;
+        margin: 0.35rem 0 1.75rem;
+    }
+
+    .login-card form p,
+    .login-card form div {
+        margin-bottom: 1.1rem;
+    }
+
+    .login-card form label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.35rem;
+    }
+
+    .login-card form input[type="text"],
+    .login-card form input[type="password"],
+    .login-card form input[type="email"] {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        color: #0f172a;
+        background: #f8fafc;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        box-sizing: border-box;
+    }
+
+    .login-card form input[type="text"]:focus,
+    .login-card form input[type="password"]:focus,
+    .login-card form input[type="email"]:focus {
+        outline: none;
+        border-color: #4f46e5;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .login-card .errorlist {
+        list-style: none;
+        margin: 0.35rem 0 0;
+        padding: 0;
+        color: #dc2626;
+        font-size: 0.8rem;
+    }
+
+    .login-card button[type="submit"] {
+        width: 100%;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #4f46e5, #3b82f6);
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        margin-top: 0.5rem;
+        box-shadow: 0 10px 20px -8px rgba(79, 70, 229, 0.55);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .login-card button[type="submit"]:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px -8px rgba(79, 70, 229, 0.6);
+    }
+
+    .login-card__footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+
+    .login-card__footer a {
+        color: #4f46e5;
+        font-weight: 600;
+        text-decoration: none;
+    }
+</style>
+
+<div class="login-shell">
+    <div class="login-card">
+        <div class="login-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+        </div>
+        <h1>Create an account</h1>
+        <p class="login-card__subtitle">Join EagleDrop CRM</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit">Sign up</button>
+        </form>
+
+        <div class="login-card__footer">
+            <a href="{% url 'login' %}">Already have an account? Log in</a>
+        </div>
     </div>
 </div>
 {% endblock content %}

@@ -10,16 +10,14 @@ def reassign_leads_to_admin(sender, instance, **kwargs):
     """
     Kur fshihet një agjent → të gjithë lead-et e tij kalojnë tek admin-i.
     """
-    try:
-        # gjej user admin
-        admin_user = User.objects.get(username="admin")
-        admin_agent, _ = Agent.objects.get_or_create(
-            user=admin_user,
-            organisation=instance.organisation
-        )
+    if not instance.organisation:
+        return
 
-        # reasign lead-et
-        Lead.objects.filter(agent=instance).update(agent=admin_agent)
+    admin_user = instance.organisation.user
+    admin_agent, _ = Agent.objects.get_or_create(
+        user=admin_user,
+        organisation=instance.organisation
+    )
 
-    except User.DoesNotExist:
-        pass
+    # reasign lead-et
+    Lead.objects.filter(agent=instance).update(agent=admin_agent)

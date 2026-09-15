@@ -813,12 +813,15 @@ class PublicLeadCreateView(View):
             messages.error(request, "Plotëso të gjitha fushat e kërkuara.")
             return render(request, self.template_name, {})
 
-        # gjej user admin
-        admin_user = User.objects.get(username="admin")
-        organisation = admin_user.userprofile
+        # gjej organizatorin
+        organisor_user = User.objects.filter(is_organisor=True).order_by("id").first()
+        if not organisor_user:
+            messages.error(request, "S'ka organizator të konfiguruar.")
+            return render(request, self.template_name, {})
+        organisation = organisor_user.userprofile
 
         # gjej ose krijo agent
-        agent, _ = Agent.objects.get_or_create(user=admin_user, organisation=organisation)
+        agent, _ = Agent.objects.get_or_create(user=organisor_user, organisation=organisation)
 
         # gjej ose krijo kategori NEW
         new_category, _ = Category.objects.get_or_create(
@@ -976,9 +979,11 @@ def affiliate_webhook(request, affiliate, forum):
     try:
         data = json.loads(request.body)
 
-        admin_user = User.objects.get(username="admin")
-        organisation = admin_user.userprofile
-        agent, _ = Agent.objects.get_or_create(user=admin_user, organisation=organisation)
+        organisor_user = User.objects.filter(is_organisor=True).order_by("id").first()
+        if not organisor_user:
+            return JsonResponse({"ok": False, "error": "no organisor account configured"}, status=500)
+        organisation = organisor_user.userprofile
+        agent, _ = Agent.objects.get_or_create(user=organisor_user, organisation=organisation)
         new_category, _ = Category.objects.get_or_create(name="New", organisation=organisation)
 
         leads_created = []
