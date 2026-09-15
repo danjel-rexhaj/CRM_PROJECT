@@ -81,6 +81,12 @@ class LandingPageView(generic.TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
 
+ALBANIAN_MONTHS_SHORT = [
+    "Jan", "Shk", "Mar", "Pri", "Maj", "Qer",
+    "Kor", "Gsh", "Sht", "Tet", "Nën", "Dhj",
+]
+
+
 class DashboardView(OrganisorAndLoginRequiredMixin, generic.TemplateView):
     template_name = "dashboard.html"
 
@@ -88,30 +94,60 @@ class DashboardView(OrganisorAndLoginRequiredMixin, generic.TemplateView):
         context = super(DashboardView, self).get_context_data(**kwargs)
 
         user = self.request.user
+        base_qs = Lead.objects.filter(organisation=user.userprofile)
 
         # How many leads we have in total
-        total_lead_count = Lead.objects.filter(organisation=user.userprofile).count()
+        total_lead_count = base_qs.count()
 
         # How many new leads in the last 30 days
         thirty_days_ago = date.today() - timedelta(days=30)
 
-        total_in_past30 = Lead.objects.filter(
-            organisation=user.userprofile,
+        total_in_past30 = base_qs.filter(
             date_added__gte=thirty_days_ago
         ).count()
 
         # How many converted leads in the last 30 days
-        converted_category = Category.objects.get(name="Converted")
-        converted_in_past30 = Lead.objects.filter(
-            organisation=user.userprofile,
-            category=converted_category,
-            converted_date__gte=thirty_days_ago
-        ).count()
+        converted_category = Category.objects.filter(
+            organisation=user.userprofile, name__iexact="Converted"
+        ).first()
+        if converted_category:
+            converted_in_past30 = base_qs.filter(
+                category=converted_category,
+                converted_date__gte=thirty_days_ago
+            ).count()
+        else:
+            converted_in_past30 = 0
+
+        # Bucket every lead's category into one of 4 statuses for the dashboard cards/chart
+        pending_names = ["call back", "voicemail", "no answer", "error call", "live"]
+        contacted_count = base_qs.filter(category__name__icontains="convert").count()
+        in_process_count = 0
+        for name in pending_names:
+            in_process_count += base_qs.filter(category__name__icontains=name).count()
+        not_interested_count = base_qs.filter(category__name__icontains="not interest").count()
+        other_count = total_lead_count - contacted_count - in_process_count - not_interested_count
+        if other_count < 0:
+            other_count = 0
+
+        # Leads added per day, last 30 days, for the line chart
+        chart_labels = []
+        chart_data = []
+        for i in range(29, -1, -1):
+            day = date.today() - timedelta(days=i)
+            day_count = base_qs.filter(date_added__date=day).count()
+            chart_labels.append(f"{day.day:02d} {ALBANIAN_MONTHS_SHORT[day.month - 1]}")
+            chart_data.append(day_count)
 
         context.update({
             "total_lead_count": total_lead_count,
             "total_in_past30": total_in_past30,
-            "converted_in_past30": converted_in_past30
+            "converted_in_past30": converted_in_past30,
+            "contacted_count": contacted_count,
+            "in_process_count": in_process_count,
+            "not_interested_count": not_interested_count,
+            "other_count": other_count,
+            "chart_labels": chart_labels,
+            "chart_data": chart_data,
         })
         return context
 
