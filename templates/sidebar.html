@@ -1,0 +1,38 @@
+{% load static %}
+<aside class="app-sidebar">
+    <a href="{% url 'dashboard' %}" class="app-sidebar-brand">
+        <img src="{% static 'images/logo.svg' %}" alt="Logo">
+        <span>EagleDrop CRM</span>
+    </a>
+    <nav class="app-sidebar-nav">
+        <a href="{% url 'dashboard' %}" class="app-sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <span class="ic">&#9635;</span> Dashboard
+        </a>
+        <a href="{% url 'leads:lead-list' %}" class="app-sidebar-link {% if request.resolver_match.namespace == 'leads' %}active{% endif %}">
+            <span class="ic">&#128100;</span> Leads
+        </a>
+        {% if request.user.is_organisor %}
+        <a href="{% url 'agents:agent-list' %}" class="app-sidebar-link {% if request.resolver_match.namespace == 'agents' %}active{% endif %}">
+            <span class="ic">&#128101;</span> Agjentët
+        </a>
+        {% endif %}
+        <a href="#" class="app-sidebar-link disabled" title="Së shpejti">
+            <span class="ic">&#127942;</span> Leaders
+        </a>
+        <a href="#" class="app-sidebar-link disabled" title="Së shpejti">
+            <span class="ic">&#128172;</span> Komunikimet
+        </a>
+        <a href="#" class="app-sidebar-link disabled" title="Së shpejti">
+            <span class="ic">&#128202;</span> Raportet
+        </a>
+        <a href="#" class="app-sidebar-link disabled" title="Së shpejti">
+            <span class="ic">&#9881;</span> Cilësimet
+        </a>
+    </nav>
+    <div class="app-sidebar-foot">
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit"><span class="ic">&#8676;</span> Dalja</button>
+        </form>
+    </div>
+</aside>
