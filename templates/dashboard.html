@@ -116,8 +116,34 @@
         }
         .panel-title{font-size:.95rem;font-weight:600;margin:0 0 16px;color:var(--text-dark);}
         .legend{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
-        .legend-item{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-dark);}
+        .legend-item{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.85rem;color:var(--text-dark);}
+        .legend-item-left{display:flex;align-items:center;gap:8px;}
         .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+        .legend-value{color:var(--text-muted);font-weight:600;}
+        .donut-wrap{position:relative;}
+        .donut-center{
+            position:absolute;top:0;left:0;right:0;bottom:0;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            pointer-events:none;
+        }
+        .donut-center .n{font-size:1.4rem;font-weight:700;color:var(--text-dark);}
+        .donut-center .l{font-size:.7rem;color:var(--text-muted);}
+
+        /* Responsive sidebar: stack on top for narrow / mobile screens */
+        @media (max-width:768px){
+            .layout{flex-direction:column;}
+            .sidebar{
+                width:100%;height:auto;position:relative;top:auto;
+                flex-direction:row;flex-wrap:wrap;align-items:center;
+            }
+            .sidebar-brand{border-bottom:0;padding:14px 16px;width:100%;}
+            .sidebar-nav{
+                display:flex;flex-wrap:wrap;gap:4px;padding:0 10px 10px;width:100%;
+            }
+            .sidebar-link{padding:8px 12px;margin:0;}
+            .sidebar-foot{width:100%;border-top:1px solid rgba(255,255,255,.06);}
+            .content{padding:18px 16px;}
+        }
     </style>
 </head>
 <body>
@@ -210,12 +236,30 @@
                     </div>
                     <div class="panel">
                         <p class="panel-title">Statusi i klientëve</p>
-                        <canvas id="statusDonutChart" height="160"></canvas>
+                        <div class="donut-wrap">
+                            <canvas id="statusDonutChart" height="160"></canvas>
+                            <div class="donut-center">
+                                <span class="n">{{ total_lead_count }}</span>
+                                <span class="l">total</span>
+                            </div>
+                        </div>
                         <div class="legend">
-                            <div class="legend-item"><span class="legend-dot" style="background:#22a85a;"></span> Të kontaktuar</div>
-                            <div class="legend-item"><span class="legend-dot" style="background:#e0a615;"></span> Në proces</div>
-                            <div class="legend-item"><span class="legend-dot" style="background:#e0473f;"></span> Jo të interesuar</div>
-                            <div class="legend-item"><span class="legend-dot" style="background:#c9cdd6;"></span> Të tjerë</div>
+                            <div class="legend-item">
+                                <span class="legend-item-left"><span class="legend-dot" style="background:#22a85a;"></span> Të kontaktuar</span>
+                                <span class="legend-value">{{ contacted_count }}</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-item-left"><span class="legend-dot" style="background:#e0a615;"></span> Në proces</span>
+                                <span class="legend-value">{{ in_process_count }}</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-item-left"><span class="legend-dot" style="background:#e0473f;"></span> Jo të interesuar</span>
+                                <span class="legend-value">{{ not_interested_count }}</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-item-left"><span class="legend-dot" style="background:#2f6bff;"></span> Të reja</span>
+                                <span class="legend-value">{{ other_count }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -231,7 +275,12 @@
         const chartLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
         const chartData = JSON.parse(document.getElementById('chart-data-data').textContent);
 
-        new Chart(document.getElementById('contactsLineChart'), {
+        const lineCtx = document.getElementById('contactsLineChart').getContext('2d');
+        const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 220);
+        lineGradient.addColorStop(0, 'rgba(47,107,255,.35)');
+        lineGradient.addColorStop(1, 'rgba(47,107,255,0)');
+
+        new Chart(lineCtx, {
             type: 'line',
             data: {
                 labels: chartLabels,
@@ -239,18 +288,22 @@
                     label: 'Leads',
                     data: chartData,
                     borderColor: '#2f6bff',
-                    backgroundColor: 'rgba(47,107,255,.08)',
-                    tension: .35,
+                    backgroundColor: lineGradient,
+                    borderWidth: 2.5,
+                    tension: .4,
                     fill: true,
-                    pointRadius: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#2f6bff',
                 }]
             },
             options: {
                 responsive: true,
+                interaction: { intersect: false, mode: 'index' },
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { ticks: { maxTicksLimit: 7 }, grid: { display: false } },
-                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f2f7' } }
                 }
             }
         });
@@ -258,7 +311,7 @@
         new Chart(document.getElementById('statusDonutChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Të kontaktuar', 'Në proces', 'Jo të interesuar', 'Të tjerë'],
+                labels: ['Të kontaktuar', 'Në proces', 'Jo të interesuar', 'Të reja'],
                 datasets: [{
                     data: [
                         {{ contacted_count }},
@@ -266,13 +319,15 @@
                         {{ not_interested_count }},
                         {{ other_count }}
                     ],
-                    backgroundColor: ['#22a85a', '#e0a615', '#e0473f', '#c9cdd6'],
-                    borderWidth: 0,
+                    backgroundColor: ['#22a85a', '#e0a615', '#e0473f', '#2f6bff'],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 6,
                 }]
             },
             options: {
                 responsive: true,
-                cutout: '65%',
+                cutout: '68%',
                 plugins: { legend: { display: false } }
             }
         });
