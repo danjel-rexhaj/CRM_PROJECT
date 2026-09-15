@@ -94,6 +94,7 @@
             <!-- Shuffle form (standalone: doesn't need the per-row checkboxes) -->
             {% if user.is_organisor %}
             <div class="w-1/2">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Shuffle</p>
                 <form method="POST" action="{% url 'leads:shuffle-leads' %}" class="assign-form flex items-center gap-2">
                     {% csrf_token %}
                     <select id="shuffle-agent" class="tom-select1" name="agent_ids" multiple required>
