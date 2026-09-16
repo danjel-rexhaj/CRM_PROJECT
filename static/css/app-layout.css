@@ -5,6 +5,15 @@
     --card-border:#e7e9f0;
     --text-dark:#1f2430;
     --text-muted:#7c8291;
+    --panel-bg:#fff;
+}
+
+body.dark{
+    --app-bg:#202124;
+    --card-border:#3c4043;
+    --text-dark:#f1f5f9;
+    --text-muted:#9aa4b2;
+    --panel-bg:#2d2f31;
 }
 
 .app-layout{display:flex;min-height:100vh;background:var(--app-bg);}
@@ -60,9 +69,9 @@
 .app-main{flex:1;min-width:0;}
 .app-topbar{
     display:flex;align-items:center;justify-content:flex-end;
-    padding:14px 28px;background:#fff;border-bottom:1px solid var(--card-border);
+    padding:14px 28px;background:var(--panel-bg);border-bottom:1px solid var(--card-border);
 }
-.app-content{padding:26px 28px;}
+.app-content{padding:26px 28px;color:var(--text-dark);}
 
 @media (max-width:768px){
     .app-layout{flex-direction:column;}
