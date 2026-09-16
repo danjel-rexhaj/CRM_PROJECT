@@ -73,6 +73,19 @@ body.dark{
 }
 .app-content{padding:26px 28px;color:var(--text-dark);}
 
+/* The topbar embeds the shared navbar.html partial (dark-mode agnostic,
+   hardcoded Tailwind grays) - override its text/controls to follow the
+   app's dark toggle instead of staying stuck in light-mode colors. */
+body.dark .app-topbar header{color:var(--text-dark);}
+body.dark .app-topbar header a,
+body.dark .app-topbar header span{color:var(--text-dark);}
+body.dark .app-topbar .bg-gray-200{background:#3c4043;color:var(--text-dark);}
+body.dark .app-topbar .bg-gray-200:hover{background:#4a4e51;}
+body.dark .app-topbar button#darkModeToggle,
+body.dark .app-topbar button#notificationBell{border-color:#4a4e51;}
+body.dark .app-topbar button#darkModeToggle:hover,
+body.dark .app-topbar button#notificationBell:hover{background:#3c4043;}
+
 @media (max-width:768px){
     .app-layout{flex-direction:column;}
     .app-sidebar{
