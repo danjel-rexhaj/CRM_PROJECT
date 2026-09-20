@@ -485,7 +485,7 @@ class AssignAgentView(OrganisorAndLoginRequiredMixin, generic.FormView):
 
 
 
-class CategoryListView(LoginRequiredMixin, generic.ListView):
+class CategoryListView(OrganisorAndLoginRequiredMixin, generic.ListView):
     template_name = "leads/category_list.html"
     context_object_name = "category_list"
 
@@ -521,7 +521,7 @@ class CategoryListView(LoginRequiredMixin, generic.ListView):
         return queryset
 
 
-class CategoryDetailView(LoginRequiredMixin, generic.DetailView):
+class CategoryDetailView(OrganisorAndLoginRequiredMixin, generic.DetailView):
     template_name = "leads/category_detail.html"
     context_object_name = "category"
 
@@ -763,7 +763,7 @@ class LeadJsonView(generic.View):
         })
     
 
-class AssignMultipleAgentsView(LoginRequiredMixin, generic.ListView):
+class AssignMultipleAgentsView(OrganisorAndLoginRequiredMixin, generic.ListView):
     template_name = "leads/assign_multiple_agents.html"
     context_object_name = "leads"
 

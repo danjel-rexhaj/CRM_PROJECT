@@ -5,9 +5,11 @@
         <span>EagleDrop CRM</span>
     </a>
     <nav class="app-sidebar-nav">
+        {% if request.user.is_organisor %}
         <a href="{% url 'dashboard' %}" class="app-sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <span class="ic">&#9635;</span> Dashboard
         </a>
+        {% endif %}
         <a href="{% url 'leads:lead-list' %}" class="app-sidebar-link {% if request.resolver_match.namespace == 'leads' %}active{% endif %}">
             <span class="ic">&#128100;</span> Leads
         </a>
