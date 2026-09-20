@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from leads.views import LandingPageView, SignupView, DashboardView
+from leads.views import LandingPageView, SignupView, SignupVerifyView, DashboardView
 
 # Përdor të njëjtin view për të dyja rrotat (password-reset dhe reset-password)
 password_reset_view = auth_views.PasswordResetView.as_view(
@@ -24,6 +24,7 @@ urlpatterns = [
     path('leads/', include('leads.urls', namespace="leads")),
     path('agents/', include('agents.urls', namespace="agents")),
     path('signup/', SignupView.as_view(), name='signup'),
+    path('signup/verify/', SignupVerifyView.as_view(), name='signup-verify'),
 
     # ----- Password reset flow -----
     path('password-reset/', password_reset_view, name='password_reset'),

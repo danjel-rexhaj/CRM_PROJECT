@@ -1,4 +1,6 @@
 import logging
+import secrets
+import time
 from datetime import datetime, date, timedelta
 from django_countries import countries
 from django.contrib import messages
@@ -7,6 +9,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -20,6 +23,7 @@ from django.shortcuts import (
     render, redirect, get_object_or_404
 )
 from django.urls import reverse
+from django.utils.crypto import constant_time_compare
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import now
 from django.views import generic, View
@@ -56,32 +60,112 @@ logger = logging.getLogger(__name__)
 # CRUD+L - Create, Retrieve, Update and Delete + List
 
 
+SIGNUP_SESSION_KEY = "pending_signup"
+SIGNUP_CODE_TTL = 10 * 60  # sekonda
+SIGNUP_MAX_ATTEMPTS = 5
+
+
+def _send_signup_code(pending):
+    """Gjeneron një kod të ri, e ruan në 'pending' dhe e dërgon me email."""
+    pending["code"] = f"{secrets.randbelow(10**6):06d}"
+    pending["expires"] = time.time() + SIGNUP_CODE_TTL
+    pending["attempts"] = 0
+    send_mail(
+        subject="Your EagleDrop CRM verification code",
+        message=(
+            f"Hi {pending['first_name']},\n\n"
+            f"Your verification code is: {pending['code']}\n\n"
+            f"It expires in {SIGNUP_CODE_TTL // 60} minutes. "
+            "If you did not try to sign up, you can ignore this email."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[pending["email"]],
+    )
+
+
 class SignupView(generic.CreateView):
+    """Hapi 1: merr të dhënat, dërgon kodin me email. Llogaria krijohet vetëm pas verifikimit."""
     template_name = "registration/signup.html"
     form_class = CustomUserCreationForm
 
-    def get_success_url(self):
-        return reverse("login")
-
     def form_valid(self, form):
-        user = form.save(commit=False)
+        cd = form.cleaned_data
+        pending = {
+            "username": cd["username"],
+            "first_name": cd["first_name"],
+            "last_name": cd["last_name"],
+            "email": cd["email"],
+            "password": make_password(cd["password1"]),
+        }
+        try:
+            _send_signup_code(pending)
+        except Exception:
+            logger.exception("Failed to send signup verification code")
+            form.add_error(None, "We couldn't send the verification email. Please check the address and try again.")
+            return self.form_invalid(form)
+        self.request.session[SIGNUP_SESSION_KEY] = pending
+        return redirect("signup-verify")
+
+
+class SignupVerifyView(generic.TemplateView):
+    """Hapi 2: kodi nga emaili; nëse është i saktë krijohet llogaria."""
+    template_name = "registration/signup_verify.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if SIGNUP_SESSION_KEY not in request.session:
+            return redirect("signup")
+        return super().dispatch(request, *args, **kwargs)
+
+    def _render(self, error=None):
+        pending = self.request.session[SIGNUP_SESSION_KEY]
+        return self.render_to_response({"email": pending["email"], "error": error})
+
+    def post(self, request, *args, **kwargs):
+        pending = request.session[SIGNUP_SESSION_KEY]
+
+        if request.POST.get("resend"):
+            try:
+                _send_signup_code(pending)
+            except Exception:
+                logger.exception("Failed to resend signup verification code")
+                return self._render("We couldn't send the email. Please try again in a moment.")
+            request.session[SIGNUP_SESSION_KEY] = pending
+            messages.success(request, "A new code has been sent.")
+            return redirect("signup-verify")
+
+        if time.time() > pending["expires"]:
+            return self._render("This code has expired. Click 'Send a new code'.")
+        if pending["attempts"] >= SIGNUP_MAX_ATTEMPTS:
+            return self._render("Too many wrong attempts. Click 'Send a new code'.")
+
+        code = request.POST.get("code", "").strip()
+        if not constant_time_compare(code, pending["code"]):
+            pending["attempts"] += 1
+            request.session[SIGNUP_SESSION_KEY] = pending
+            return self._render("Incorrect code. Please try again.")
+
+        if (
+            User.objects.filter(username=pending["username"]).exists()
+            or User.objects.filter(email__iexact=pending["email"]).exists()
+        ):
+            del request.session[SIGNUP_SESSION_KEY]
+            messages.error(request, "That username or email is already registered.")
+            return redirect("signup")
+
         # Kush regjistrohet vetë është pronar i CRM-së së tij (organisor);
         # agjentët krijohen nga organisor-i te faqja Agents.
-        user.is_organisor = True
-        user.is_agent = False
-        user.save()
-        if user.email:
-            try:
-                send_mail(
-                    subject="Welcome to EagleDrop CRM",
-                    message=f"Hi {user.first_name}, your account ({user.username}) has been created. You can now log in.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                )
-            except Exception:
-                logger.exception("Failed to send signup welcome email")
-        messages.success(self.request, "Account created. You can now log in.")
-        return redirect(self.get_success_url())
+        User.objects.create(
+            username=pending["username"],
+            first_name=pending["first_name"],
+            last_name=pending["last_name"],
+            email=pending["email"],
+            password=pending["password"],
+            is_organisor=True,
+            is_agent=False,
+        )
+        del request.session[SIGNUP_SESSION_KEY]
+        messages.success(request, "Email verified. Your account has been created, you can now log in.")
+        return redirect("login")
 
 
 
