@@ -26,7 +26,7 @@ class LeadModelForm(forms.ModelForm):
             "email",
             "affiliate",
             "forum",
-            "country",  # ✅ shto fushën country
+            "country",  
         )
         widgets = {
             "country": CountrySelectWidget(attrs={
@@ -62,6 +62,12 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = ("username", "first_name", "last_name", "email", "password1", "password2")
         field_classes = {"username": UsernameField}
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
 
 class AssignAgentForm(forms.Form):
     agent = forms.ModelChoiceField(queryset=Agent.objects.none())

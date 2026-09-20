@@ -65,10 +65,23 @@ class SignupView(generic.CreateView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
-        user.is_organisor = False  # çdo user i ri nuk është organizator
-        user.is_agent = False      # as agent
+        # Kush regjistrohet vetë është pronar i CRM-së së tij (organisor);
+        # agjentët krijohen nga organisor-i te faqja Agents.
+        user.is_organisor = True
+        user.is_agent = False
         user.save()
-        return super().form_valid(form)
+        if user.email:
+            try:
+                send_mail(
+                    subject="Welcome to EagleDrop CRM",
+                    message=f"Hi {user.first_name}, your account ({user.username}) has been created. You can now log in.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                )
+            except Exception:
+                logger.exception("Failed to send signup welcome email")
+        messages.success(self.request, "Account created. You can now log in.")
+        return redirect(self.get_success_url())
 
 
 
@@ -357,12 +370,16 @@ class LeadCreateView(OrganisorAndLoginRequiredMixin, generic.CreateView):
         lead = form.save(commit=False)
         lead.organisation = self.request.user.userprofile
         lead.save()
-        send_mail(
-            subject="A lead has been created",
-            message="Go to the site to see the new lead",
-            from_email="test@test.com",
-            recipient_list=["test2@test.com"]
-        )
+        if self.request.user.email:
+            try:
+                send_mail(
+                    subject="A lead has been created",
+                    message=f"Lead {lead.first_name} {lead.last_name} was created. Go to the site to see it.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[self.request.user.email],
+                )
+            except Exception:
+                logger.exception("Failed to send lead-created email")
         messages.success(self.request, "You have successfully created a lead")
         return super(LeadCreateView, self).form_valid(form)
 
@@ -1113,7 +1130,7 @@ def notify_agent_login(sender, request, user, **kwargs):
                 ),
                 from_email=admin_email,
                 recipient_list=[admin_email],
-                fail_silently=False,
+                fail_silently=True,
             )
 
 

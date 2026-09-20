@@ -144,7 +144,10 @@
             <button type="submit">Login</button>
         </form>
 
-        <div class="login-card__footer">EagleDrop CRM</div>
+        <div class="login-card__footer">
+            Don't have an account? <a href="{% url 'signup' %}" style="color:#4f46e5;font-weight:600;text-decoration:none;">Sign up</a>
+            <div style="margin-top:0.5rem;"><a href="{% url 'password_reset' %}" style="color:#4f46e5;text-decoration:none;">Forgot password?</a></div>
+        </div>
     </div>
 </div>
 
