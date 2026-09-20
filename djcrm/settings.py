@@ -152,16 +152,14 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
-# SendGrid (SMTP relay). When SENDGRID_API_KEY is set it overrides the SMTP
-# settings above; DEFAULT_FROM_EMAIL must be a sender verified in SendGrid.
-SENDGRID_API_KEY = env("SENDGRID_API_KEY", default="")
-if SENDGRID_API_KEY:
-    EMAIL_HOST = "smtp.sendgrid.net"
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_USE_SSL = False
-    EMAIL_HOST_USER = "apikey"
-    EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+# Brevo (HTTP API, works on Render free plan where SMTP ports are blocked).
+# When BREVO_API_KEY is set it overrides the SMTP backend above;
+# DEFAULT_FROM_EMAIL must be a sender verified in Brevo.
+BREVO_API_KEY = env("BREVO_API_KEY", default="")
+if BREVO_API_KEY:
+    INSTALLED_APPS += ["anymail"]
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {"BREVO_API_KEY": BREVO_API_KEY}
 
 
 if not DEBUG:

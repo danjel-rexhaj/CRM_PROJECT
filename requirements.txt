@@ -15,3 +15,4 @@ sqlparse==0.5.3
 typing_extensions==4.15.0
 tzdata==2025.3
 whitenoise==5.3.0
+django-anymail[brevo]==15.2
